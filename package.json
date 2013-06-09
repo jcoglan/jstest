@@ -10,9 +10,7 @@
 , "main"            : "./jstest"
 , "bin"             : {"jstest": "./bin/jstest"}
 , "preferGlobal"    : true
-, "devDependencies" : { "jsbuild": ""
-                      , "jsclass": "4.0.0"
-                      , "wake": ""
+, "devDependencies" : { "wake": ""
                       , "buster": ""
                       , "karma": ""
                       , "testem": ""
