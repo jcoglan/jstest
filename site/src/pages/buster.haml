@@ -1,0 +1,61 @@
+:textile
+  h2. Running tests with Buster.JS
+
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using "Buster.JS":http://busterjs.org.
+
+  First, install @buster@ from @npm@:
+
+  <pre class="cmd">$ npm install buster</pre>
+
+  Then add the following config to @example/buster.js@. This tells Buster to
+  load @jstest.js@ then use your @runner.js@ script to dynamically load your
+  code and tests.
+
+  <pre>// example/buster.js
+  
+  var staticHost = 'http://localhost:4180'
+
+  exports.tests = {
+    rootPath: '..',
+    sources:  ['build/jstest.js'],
+    tests:    ['example/runner.js'],
+    autoRun:  false,
+
+    resources: ['/build', '/example'].map(function(path) {
+      return {path: path, backend: staticHost + path}
+    })
+  }</pre>
+
+  @jstest@ will detect Buster and automatically use the right
+  "reporter":/reporters.html for it.
+
+  You need to start a static file server that Buster can load your project from:
+
+  <pre class="cmd">$ python -m SimpleHTTPServer 4180
+  Serving HTTP on 0.0.0.0 port 4180 ...</pre>
+
+  Now, start the Buster server:
+
+  <pre class="cmd">$ ./node_modules/.bin/buster-server
+  buster-server running on http://localhost:1111</pre>
+
+  And open @http://localhost:1111/@ in your browser. You should see this page:
+
+  !/images/buster1.png!
+
+  Click 'Capture browser' to connect your browser to the Buster server. Now,
+  Buster has particular places it likes to find its config, so set up a link so
+  that @spec/buster.js@ exists:
+
+  <pre class="cmd">$ ln -s example spec</pre>
+
+  And finally, run the @buster-test@ command to run your tests in all the
+  connected browsers:
+
+  <pre class="cmd">$ ./node_modules/.bin/buster-test
+  Chrome 27.0.1453.110, Mac OS X 10.6.8: ..
+  2 test cases, 2 tests, 2 assertions, 0 failures, 0 errors, 0 timeouts
+  Finished in 0.091s</pre>
+

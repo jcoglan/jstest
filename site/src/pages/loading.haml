@@ -1,0 +1,60 @@
+:textile
+  h2. Loading your scripts
+  
+  @jstest@ does not care how you go about loading your code, so you are free to
+  use any module loader you like. However, if you're not using a module loader,
+  or want to run your tests on both the client and the server, @jstest@ can help
+  you out.
+
+  In "Getting started":/intro.html, you set up a page using script tags to load
+  your code. On some platforms, these scripts will be aggressively cached,
+  making it hard to test your code reliably. And if you want to run your tests
+  on the server, or using other browser test runners, you'll need to duplicate
+  the information in the script tags using those platforms' script loading APIs.
+
+  @jstest@ lets you solve both these problems by using a programmatic API for
+  loading your code. Add the following to @example/runner.js@:
+  
+  <pre>// example/runner.js
+  
+  var boot = function() {
+    var ROOT = JS.ENV.ROOT || '.'
+    JS.cache = false
+
+    JS.load(  ROOT + '/example/lib/set.js',
+              ROOT + '/example/spec/set_spec.js',
+
+              function() { JS.Test.autorun() })
+  }
+
+  boot()</pre>
+  
+  (@JS.ENV@ gives you a reference to the global object on whatever platform
+  you're running @jstest@ on; you can use this to access global variables
+  easily.)
+
+  If you rewrite your page to use this, your code will be loaded dynamically,
+  bypassing the browser cache:
+
+  <pre><!-- example/browser.html -->
+  
+  <!doctype html>
+  <html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>jstest</title>
+    </head>
+    <body>
+
+      <script src="../build/jstest.js" type="text/javascript"></script>
+
+      <script type="text/javascript">ROOT = '..'</script>
+      <script src="./runner.js" type="text/javascript"></script>
+
+    </body>
+  </html></pre>
+
+  You can reuse this script-loading code "on the server":/server.html, and with
+  various "browser test runners":/browser.html, minimizing the duplication you
+  need in your test configuration.
+

@@ -1,0 +1,67 @@
+:textile
+  h2. Running tests with Karma
+
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using "Karma":http://karma-runner.github.io/.
+
+  First, install @karma@ from @npm@:
+
+  <pre class="cmd">$ npm install karma</pre>
+
+  Then add the following config to @example/karma.js@. This tells Karma to load
+  @jstest.js@ then use your @runner.js@ script to dynamically load your code and
+  tests. We set @ROOT = http://localhost:4180@ to make @runner.js@ load files
+  from a static file server we'll set up in a minute.
+
+  <pre>// example/karma.js
+  
+  ROOT = 'http://localhost:4180'
+
+  if (typeof window === 'undefined') {
+    autoWatch = true
+    basePath  = '..'
+    files     = ['example/karma.js', ROOT + '/build/jstest.js', ROOT + '/example/runner.js']
+  } else {
+    __karma__.start = function() {}
+  }</pre>
+
+  If you're prefer to list all your files here instead of using your @runner.js@
+  script, that's fine too:
+
+  <pre>// example/karma.js
+
+  if (typeof window === 'undefined') {
+    autoWatch = true
+    basePath  = '..'
+    files     = ['example/karma.js', 'build/jstest.js',
+                 'example/lib/set.js', 'example/spec/set_spec.js']
+  } else {
+    __karma__.start = function() {
+      JS.Test.autorun()
+    }
+  }</pre>
+
+  @jstest@ will detect Karma and automatically use the right
+  "reporter":/reporters.html for it.
+
+  You need to start a static file server that Karma can load your project from:
+
+  <pre class="cmd">$ python -m SimpleHTTPServer 4180
+  Serving HTTP on 0.0.0.0 port 4180 ...</pre>
+
+  Now, start the Karma server:
+
+  <pre class="cmd">$ ./node_modules/.bin/karma start example/karma.js
+  INFO [karma]: Karma server started at http://localhost:9876/</pre>
+
+  And open @http://localhost:9876/@ in your browser. You should see this page:
+
+  !/images/karma1.png!
+
+  Finally, run the @karma run@ command to run your tests in all the connected
+  browsers:
+
+  <pre class="cmd">$ ./node_modules/.bin/karma run
+  Chrome 27.0 (Mac): Executed 2 of 2 SUCCESS (0.61 secs / 0.009 secs)</pre>
+

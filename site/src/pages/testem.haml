@@ -1,0 +1,40 @@
+:textile
+  h2. Running tests with Testem
+
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using "Testem":https://github.com/airportyh/testem.
+
+  If you have an existing web page that runs your @jstest@ suite, then running
+  it with Testem is straight-forward. First, install @testem@ from @npm@:
+  
+  <pre class="cmd">$ npm install testem</pre>
+  
+  Add this config file at @example/testem.json@:
+  
+  <pre>// example/testem.json
+
+  {"test_page": "example/browser.html"}</pre>
+
+  @jstest@ will detect Testem and automatically use the right
+  "reporter":/reporters.html for it.
+
+
+  Run this command to launch the server:
+
+  <pre class="cmd">$ ./node_modules/.bin/testem -f example/testem.json</pre>
+
+  You should see something like this in your terminal:
+
+  !/images/testem1.png!
+
+  Open @http://localhost:7357/@ in your browser, and you should see your tests
+  running:
+
+  !/images/testem2.png!
+
+  Your terminal will summarize the results for all the browsers you have opened
+  and trigger a new test run every time you change your source code.
+
+  !/images/testem3.png!
+

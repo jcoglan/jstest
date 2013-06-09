@@ -1,0 +1,29 @@
+:textile
+  h2. Running tests with PhantomJS
+
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using "PhantomJS":http://phantomjs.org.
+
+  If you have an existing web page that runs your @jstest@ suite, then running
+  it with PhantomJS is straight-forward. Create this script next to the other
+  example project files:
+
+  <pre>// example/phantom.js
+
+  phantom.injectJs('build/jstest.js')
+
+  var page     = new WebPage(),
+      reporter = new JS.Test.Reporters.PhantomJS({}, page)
+
+  page.open('example/browser.html')</pre>
+
+  If you run this script you should see the results in your terminal.
+
+  !/images/phantom1.png!
+
+  You can specify the "output format":/formats.html using the @FORMAT@
+  environment variable.
+
+  !/images/phantom2.png!
+
