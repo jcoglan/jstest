@@ -42,7 +42,6 @@
                           "reporters/karma",
                           "reporters/progress",
                           "reporters/spec",
-                          "reporters/tap",
                           "reporters/tapyj",
                           "reporters/teabag",
                           "reporters/testem",
