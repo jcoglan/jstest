@@ -56,13 +56,11 @@
     :plain
       <script type="text/javascript">
         (function() {
-          var pre = document.getElementsByTagName('pre'),
-              n   = pre.length;
-
+          var pre = document.getElementsByTagName('pre'), n = pre.length
           while (n--) {
-            if (!pre[n].className) pre[n].className = 'prettyprint';
+            if (!pre[n].className) pre[n].className = 'prettyprint'
           }
-          prettyPrint();
+          prettyPrint()
         })()
       </script>
     %script{:type => 'text/javascript', :src => '/js/analytics.js'}

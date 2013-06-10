@@ -28,18 +28,18 @@
 
   <pre>// example/spec/set_spec.js
   
-  JS.Test.describe("Set", function() { with(this) {
+  JS.Test.describe('Set', function() { with(this) {
     before(function() { with(this) {
-      this.set = new Set(["foo"])
+      this.set = new Set(['foo'])
     }})
 
-    describe("hasMember", function() { with(this) {
-      it("returns true for members", function() { with(this) {
-        assert( set.hasMember("foo") )
+    describe('hasMember', function() { with(this) {
+      it('returns true for members', function() { with(this) {
+        assert( set.hasMember('foo') )
       }})
 
-      it("returns false for non-members", function() { with(this) {
-        assertNot( set.hasMember("bar") )
+      it('returns false for non-members', function() { with(this) {
+        assertNot( set.hasMember('bar') )
       }})
     }})
   }})</pre>
@@ -87,7 +87,7 @@
 
   <pre>// example/lib/set.js
   
-  var Set = function() {};</pre>
+  var Set = function() {}</pre>
 
   If we reload the tests we have a different error this time:
 
@@ -98,11 +98,11 @@
 
   <pre>// example/lib/set.js
   
-  var Set = function() {};
+  var Set = function() {}
 
   Set.prototype.hasMember = function() {
-    return true;
-  };</pre>
+    return true
+  }</pre>
 
   This has made one of the tests pass, but one is still broken:
 
@@ -113,15 +113,15 @@
   <pre>// example/lib/set.js
   
   var Set = function(members) {
-    this._members = {};
+    this._members = {}
     for (var i = 0, n = members.length; i < n; i++) {
-      this._members[members[i]] = true;
+      this._members[members[i]] = true
     }
-  };
+  }
 
   Set.prototype.hasMember = function(value) {
-    return this._members.hasOwnProperty(value);
-  };</pre>
+    return this._members.hasOwnProperty(value)
+  }</pre>
 
   At last, when we reload the page we see all the tests have passed:
 

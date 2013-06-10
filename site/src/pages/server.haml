@@ -17,12 +17,12 @@
   import the modules we need into each spec file. Add the following to the top
   of @example/spec/set_spec.js@ to load @jstest@ and the @Set@ class:
 
-  <pre>if (typeof JS === "undefined") {
-    var JS  = require("jstest"),
-        Set = require("../lib/set").Set
+  <pre>if (typeof JS === 'undefined') {
+    var JS  = require('jstest'),
+        Set = require('../lib/set').Set
   }
 
-  JS.Test.describe("Set", function() { with(this) {
+  JS.Test.describe('Set', function() { with(this) {
     // ...</pre>
 
   @jstest@ exports a CommonJS module out of the box, but our @Set@ class
@@ -30,12 +30,12 @@
   turn it into a proper module:
 
   <pre>if (typeof exports === 'object')
-    exports.Set = Set;</pre>
+    exports.Set = Set</pre>
 
   Having done this, we can create a script to run our tests. All it does is load
   @jstest@, load all the specs, and execute them:
 
-  <pre>// examples/console.js
+  <pre>// examples/terminal.js
 
   var JS = require('jstest')
   require('./spec/set_spec')

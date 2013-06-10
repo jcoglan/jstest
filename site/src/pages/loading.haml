@@ -17,17 +17,17 @@
   
   <pre>// example/runner.js
   
-  var boot = function() {
-    var ROOT = JS.ENV.ROOT || '.'
-    JS.cache = false
+  var run = function() { JS.Test.autorun() }
 
-    JS.load(  ROOT + '/example/lib/set.js',
-              ROOT + '/example/spec/set_spec.js',
+  var ROOT = JS.ENV.ROOT || '.'
+  JS.cache = false
 
-              function() { JS.Test.autorun() })
-  }
+  JS.load(  ROOT + '/example/lib/set.js',
+            ROOT + '/example/spec/set_spec.js',
 
-  boot()</pre>
+            // add files here as the project grows
+
+            run)</pre>
   
   (@JS.ENV@ gives you a reference to the global object on whatever platform
   you're running @jstest@ on; you can use this to access global variables
