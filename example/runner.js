@@ -1,5 +1,5 @@
 var run = function() {
-  setTimeout(function() {JS.Test.autorun() }, 10)
+  setTimeout(function() { JS.Test.autorun() }, 10)
 }
 
 var ROOT = JS.ENV.ROOT || '.'
