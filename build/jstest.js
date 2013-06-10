@@ -4753,6 +4753,9 @@ Test.Unit.extend({
 Test.Unit.extend({
   Error: new JS.Class({
     initialize: function(testCase, exception) {
+      if (typeof exception === 'string')
+        exception = new Error(exception);
+
       this._testCase  = testCase;
       this._exception = exception;
     },
@@ -6695,7 +6698,9 @@ Test.extend({
           setTimeout(this.method('__runNextStep__'), 1);
         },
 
-        __runNextStep__: function() {
+        __runNextStep__: function(error) {
+          if (error !== undefined) return this.addError(error);
+
           var step = this.__stepQueue__.shift(), n;
 
           if (!step) {
