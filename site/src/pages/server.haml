@@ -1,3 +1,47 @@
 :textile
   h2. Running tests on the server
 
+  The primary target for server-side JavaScript these days is
+  "Node.js":http://nodejs.org, but @jstest@ also supports several other
+  platforms, including "Narwhal":http://narwhaljs.org/,
+  "RingoJS":http://ringojs.org/, the "PhantomJS":http://www.phantomjs.org/
+  scripting runtime, "MongoDB":http://www.mongodb.org/, and "Windows Script
+  Host":http://msdn.microsoft.com/en-us/library/9bbdkx3k(VS.85).aspx.
+
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using these server-side platforms.
+
+  The tests expect a couple of global variables to exist, @JS@ and @Set@.
+  CommonJS platforms encourage us to avoid global variables and so we need to
+  import the modules we need into each spec file. Add the following to the top
+  of @example/spec/set_spec.js@ to load @jstest@ and the @Set@ class:
+
+  <pre>if (typeof JS === "undefined") {
+    var JS  = require("jstest"),
+        Set = require("../lib/set").Set
+  }
+
+  JS.Test.describe("Set", function() { with(this) {
+    // ...</pre>
+
+  @jstest@ exports a CommonJS module out of the box, but our @Set@ class
+  doesn't, so let's add a couple of lines at the end of @example/lib/set.js@ to
+  turn it into a proper module:
+
+  <pre>if (typeof exports === 'object')
+    exports.Set = Set;</pre>
+
+  Having done this, we can create a script to run our tests. All it does is load
+  @jstest@, load all the specs, and execute them:
+
+  <pre>// examples/console.js
+
+  var JS = require('jstest')
+  require('./spec/set_spec')
+  JS.Test.autorun()</pre>
+
+  This script is enough to run the tests on various CommonJS-based platforms.
+
+  !/images/server1.png!
+

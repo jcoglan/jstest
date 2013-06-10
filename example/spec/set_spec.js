@@ -1,3 +1,8 @@
+if (typeof JS === "undefined") {
+  var JS  = require("../../build/jstest"),
+      Set = require("../lib/set").Set
+}
+
 JS.Test.describe("Set", function() { with(this) {
   before(function() { with(this) {
     this.set = new Set(["foo"])

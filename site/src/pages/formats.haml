@@ -1,3 +1,86 @@
 :textile
   h2. Output formats
 
+  When running tests from the command-line you can make @jstest@ produce a
+  variety of output formats using the @FORMAT@ environment variable. For example:
+
+  !/images/format-spec.png!
+
+  As well as specifying this on the command-line, you can use the
+  "reporter":/reporters.html API to programmatically set the output format. You
+  will usually want to add the @ExitStatus@ reporter after whichever text
+  reporter you select. For example to get @spec@ output you can do this:
+
+  <pre>JS.Test.autorun(function(runner) {
+    runner.setReporter(new JS.Test.Reporters.Spec())
+    runner.addReporter(new JS.Test.Reporters.ExitStatus())
+  })</pre>
+
+  The following lists all the available text output formats and their reporter
+  classes. Note that all these reporters (except @progress@) work on every
+  platform supported by @jstest@. In the terminal they print to stdout, and in
+  the browser they print using @console.log()@.
+
+  h3. dot, @JS.Test.Reporters.Dot@
+
+  Prints a dot for every passing test, @F@ for assertion failures and @E@ for
+  errors.  Prints a summary including error details at the end.
+
+  !/images/format-dot.png!
+
+  h3. error, @JS.Test.Reporters.Error@
+
+  Prints nothing for passing tests, and prints error details as soon as the
+  error happens rather than waiting until the end.
+
+  !/images/format-error.png!
+
+  h3. json, @JS.Test.Reporters.JSON@
+
+  This is a literal serialization of the reporter event data, which is useful
+  for sending test results via an I/O stream for formatting somewhere else. For
+  example, the "PhantomJS":/phantom.html reporter uses this to send results
+  from the browser to the terminal.
+
+  !/images/format-json.png!
+
+  h3. progress, @JS.Test.Reporters.Progress@
+
+  Prints an animated progress bar. Only works in TTYs.
+
+  !/images/format-progress.png!
+
+  h3. spec, @JS.Test.Reporters.Spec@
+
+  Prints the results as a nested set of specs, mirroring the tests' structure.
+  Prints a summary including error details at the end.
+
+  !/images/format-spec.png!
+
+  h3. tap, @JS.Test.Reporters.TAP@
+
+  Prints "TAP":http://en.wikipedia.org/wiki/Test_Anything_Protocol
+  representation of the results.
+
+  !/images/format-tap.png!
+
+  h3. tap-j, @JS.Test.Reporters.TAP_JSON@
+
+  Prints "TAP-J":https://github.com/rubyworks/tapout/wiki/TAP-Y-J-Specification
+  output than can be piped into "tapout":http://rubyworks.github.io/tapout/.
+
+  !/images/format-tap-json.png!
+
+  h3. tap-y, @JS.Test.Reporters.TAP_YAML@
+
+  Prints "TAP-Y":https://github.com/rubyworks/tapout/wiki/TAP-Y-J-Specification
+  output than can be piped into "tapout":http://rubyworks.github.io/tapout/.
+
+  !/images/format-tap-yaml.png!
+
+  h3. xml, @JS.Test.Reporters.XML@
+
+  Prints a JUnit-style XML report to stdout.
+
+  !/images/format-xml.png!
+

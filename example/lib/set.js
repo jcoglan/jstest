@@ -9,3 +9,6 @@ Set.prototype.hasMember = function(value) {
   return this._members.hasOwnProperty(value);
 };
 
+if (typeof exports === 'object')
+  exports.Set = Set;
+

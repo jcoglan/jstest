@@ -1,3 +1,112 @@
 :textile
   h2. Running tests in the browser
 
+  Running tests in the browser is simply a matter of making an HTML page that
+  loads your code and your tests, and then calls @JS.Test.autorun()@. The basics
+  are covered in the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials.
+
+  Once you've covered that, the articles listed on the left explain how to run
+  your tests using various popular test-runner frameworks. When approaching
+  these tools, try to start by making your tests run as a static empty HTML page
+  that loads some static JavaScript files. If you have a page that can run your
+  tests without any additional tooling, it's much easier to take those tests and
+  run them in other ways, for example using PhantomJS during a CI process.
+
+  h3. HTML fixtures
+
+  If you want to remain flexible about how your tests are run, you should make
+  as few assumptions about the page and the environment your code is running in.
+  Don't assume you can change the initial HTML of the host page. Don't assume
+  you can load code from the server. Various tools don't let you do either of
+  these.
+
+  For these reasons, it pays to keep your HTML fixtures in your tests
+  themselves.  For example here's a little test of some interaction with a
+  widget:
+
+  <pre>JS.Test.describe("Widget", function() { with(this) {
+    fixture(' <div class="test-widget">\
+                <p>Hello world!</p>\
+                <ul></ul>\
+              </div>' )
+
+    before(function() { with(this) {
+      new Widget(".test-widget")
+    }})
+
+    it("adds a list item when the text is clicked", function() { with(this) {
+      $(".test-widget p").click()
+      assertEqual( "added", $(".test-widget ul li").html() )
+    }})
+  }})</pre>
+
+  The @fixture()@ method is a helper that creates a @before()@ hook that adds
+  the given HTML to the page by dynamically creating a @div@ to hold it, and
+  removes the HTML after the test is done.
+
+  <pre>// spec/helpers.js
+
+  JS.Test.Unit.TestCase.extend({
+    fixture: function(html) {
+      this.before(function() {
+        var holder = $('#fixture')
+        if (holder.length === 0) {
+          holder = $('<div id="fixture"></div>')
+          $('body').append(holder)
+        }
+        holder.html(html)
+      })
+
+      this.after(function() {
+        $('#fixture').empty()
+      })
+    }
+  })</pre>
+
+  How you create your HTML for testing is up to you, @jstest@ doesn't assume
+  you're using jQuery or anything else about your application setup. The above
+  helper function is just an example.
+
+  h3. Stubbing the server
+
+  What if, instead of hard-coding the HTML our widget adds when it's clicked,
+  it called the server? Something like this:
+
+  <pre>$('p').click(function() {
+    $.get('/message', function(response) {
+      $('ul').append('<li>' + response + '</li>');
+    });
+  });</pre>
+
+  To unit test this, we need to stub out the server interaction, and we can do
+  this using the @jstest@ "stubbing API":/mocking.html. We just add one line to
+  our @before()@ block in the test:
+
+  <pre>  before(function() { with(this) {
+      new Widget(".test-widget")
+      stub($, "get").given("/message").yields(["added"])
+    }})</pre>
+
+  The test should now continue to work with this stub in place. But what if our
+  code is using promise-style async calls?
+
+  <pre>$('p').click(function() {
+    $.get('/message').then(function(response) {
+      $('ul').append('<li>' + response + '</li>');
+    });
+  });</pre>
+
+  This is easy to stub too, we just create a pre-resolved promise containing the
+  response and make jQuery return that.
+
+  <pre>  before(function() { with(this) {
+      new Widget(".test-widget")
+
+      var promise = new $.Deferred()
+      promise.resolve("added")
+      stub($, "get").given("/message").returns(promise)
+    }})</pre>
+
+  For more information see "Stubbing and mocking":/mocking.html.
+
