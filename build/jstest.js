@@ -7578,7 +7578,7 @@ Test.Reporters.extend({
       var date   = new JS.Date(),
           year   = date.getFullYear(),
           month  = this._pad(date.getMonth() + 1),
-          day    = this._pad(date.getDay()),
+          day    = this._pad(date.getDate()),
           hour   = this._pad(date.getHours()),
           minute = this._pad(date.getMinutes()),
           second = this._pad(date.getSeconds());
