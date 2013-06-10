@@ -25,5 +25,6 @@
 //= require application
 
 //= require jstest
-//= require set
+//= require jquery
+//= require helpers
 
