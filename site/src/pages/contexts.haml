@@ -1,0 +1,68 @@
+:textile
+  h2. Context blocks
+
+  @jstest@ specs are arranged in nested context blocks, much like in RSpec,
+  Jasmine and other frameworks. Contexts are delimited by @describe@ blocks (you
+  can use @context@ instead of @describe@). Within each block you can have
+  multiple @before@ and @after@ blocks, that describe what to do before and
+  after each test. The tests themselves are added using the @it@ or @should@
+  function.
+
+  Properties assigned to the test during a @before@ block are available in the
+  @it@ block, so you can use @before@ to set up state for the test.
+
+  <pre>JS.Test.describe('Arrays', function() { with(this) {
+    before(function() { with(this) {
+      this.array = [1, 2, 3]
+    }})
+
+    it('has a length property', function() { with(this) {
+      assertEqual( 3, array.length )
+    }})
+  }})</pre>
+
+  Each test is run by performing the following tasks:
+
+  * The @before@ blocks from all the enclosing contexts are run from outermost
+    to innermost.
+  * If the @before@ blocks did not raise any errors, the test itself is run.
+  * The @after@ blocks from all the enclosing contexts are run in order, this
+    time from innermost to outermost.
+
+  For example, take this set of tests:
+
+  <pre>JS.Test.describe('thing', function() { with(this) {
+    before(function() { this.puts('outer before') })
+    after (function() { this.puts('outer after') })
+
+    it('has tests', function() { with(this) {
+      puts('outer test')
+    }})
+
+    describe('nested', function() { with(this) {
+      before(function() { this.puts('INNER before') })
+      after (function() { this.puts('INNER after') })
+
+      it('does something', function() { with(this) {
+        puts('INNER test')
+      }})
+    }})
+  }})</pre>
+
+  This test suite produces this output:
+
+  <pre class="output">outer before
+  outer test
+  outer after
+
+  outer before
+  INNER before
+  INNER test
+  INNER after
+  outer after</pre>
+
+  Your @before@ and @after@ blocks are run once for every @it@ block in your
+  tests. @before@ blocks are typically used to create or modify the objects you
+  want to test, and @after@ blocks are used to reset any global state you may
+  have changed during the tests, for example to clear out a database.
+
