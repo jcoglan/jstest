@@ -6,6 +6,10 @@
 
   !/images/format-spec.png!
 
+  Where possible, it will detect whether stdout is a TTY and will not print
+  colored output otherwise. If you need to manually disable colored output, set
+  @NO_COLOR=1@.
+
   As well as specifying this on the command-line, you can use the
   "reporter":/reporters.html API to programmatically set the output format. You
   will usually want to add the @ExitStatus@ reporter after whichever text
