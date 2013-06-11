@@ -1,0 +1,23 @@
+:textile
+  h2. jstest for Node.js
+
+  Although tests can be run on any server-side platform "with a simple
+  script":/server.html, @jstest@ has a convenience interface for Node.js.
+  Install the package through @npm@:
+
+  <pre class="cmd">$ npm install -g jstest</pre>
+
+  You can then run sets of spec files from the command-line:
+
+  <pre class="cmd">$ jstest example/**/*_spec.js</pre>
+
+  The command takes a list of files, which it will load before telling the test
+  framework to execute.
+
+  The @jstest@ program takes the following options:
+
+  * @-f@, @--format@: the "output format":/formats.html to print to the console
+  * @-t@, @--test@: the name of the test to run; this option can be passed
+    multiple times, and any test whose full name includes one of the given
+    values will be run.
+
