@@ -1,7 +1,6 @@
-require 'rspec/core/formatters/base_formatter'
 require 'json'
 
-class Formatter #< RSpec::Core::Formatters::BaseFormatter
+class Formatter
   METHODS = %w[start close stop start_dump dump_pending dump_failures dump_summary]
   METHODS.each { |m| define_method(m) { |*a| } }
 
