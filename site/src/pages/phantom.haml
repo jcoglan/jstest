@@ -14,7 +14,8 @@
   phantom.injectJs('build/jstest.js')
 
   var page     = new WebPage(),
-      reporter = new JS.Test.Reporters.PhantomJS({}, page)
+      options  = {format: 'dot'},
+      reporter = new JS.Test.Reporters.PhantomJS(options, page)
 
   page.open('example/browser.html')</pre>
 
@@ -22,8 +23,9 @@
 
   !/images/phantom1.png!
 
-  You can specify the "output format":/formats.html using the @FORMAT@
-  environment variable.
+  You can use the @options@ object to specify the "output format":/formats.html
+  for the script. Alternatively, you can omit the @format@ option and use the
+  @FORMAT@ environment variable instead.
 
   !/images/phantom2.png!
 

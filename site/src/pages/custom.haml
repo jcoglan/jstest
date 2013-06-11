@@ -1,0 +1,89 @@
+:textile
+  h2. Creating custom reporters
+
+  The reporters built into @jstest@ are not baked into the core framework, they
+  are implemented as plugins, and you can add your own. A reporter is any object
+  that responds to the following methods:
+
+  * @startSuite(event)@ - called when the test suite begins
+  * @startContext(event)@ - called when the runner begins a new @describe@ block
+  * @startTest(event)@ - called before each test begins
+  * @addFault(event)@ - called when an assertion failure or error is detected
+  * @update(event)@ - called when the number of tests/assertions/failures
+    changes
+  * @endTest(event)@ - called after each test finishes
+  * @endContext(event)@ - called after the runner completes a @describe@ block
+  * @endSuite(event)@ - called after all the tests have been run
+
+  The @event@ arguments are self-contained data objects, so you can serialize
+  them as JSON and send them over an I/O stream for interpretation somewhere
+  else should you need to. Each method is given a different type of event, whose
+  details are as follows. All events share the following properties:
+
+  * @eventId@: the sequential integer ID of the event
+  * @timestamp@: the current Unix timestamp in milliseconds
+
+  The event-specific data looks like this:
+
+  <pre>reporter.startSuite({
+    // the names of all the top-level 'describe' blocks
+    children: ['Set', 'Widget'],
+    // the total number of tests in the suite
+    size: 3
+  })</pre>
+
+  <pre>reporter.startContext({
+    // the full name of this 'describe' block
+    fullName: 'Set hasMember',
+    // the short name of the block
+    shortName: 'hasMember',
+    // the names of the containing 'describe' blocks
+    context: ['Set'],
+    // the names of any 'describe' blocks inside the current one
+    children: [],
+    // the total number of tests inside this block
+    size: 2
+  })</pre>
+
+  The event for @endContext()@ looks the same as the one for @startContext()@.
+
+  <pre>reporter.startTest({
+    // the full name of the test
+    fullName: 'Set hasMember returns false for non-members',
+    // the short name of the test, without context
+    shortName: 'returns false for non-members',
+    // the names of the containing 'describe' blocks
+    context: ['Set', 'hasMember']
+  })</pre>
+
+  The event for @endTest()@ looks the same as the one for @startTest()@.
+
+  <pre>reporter.addFault({
+    // event data for the test the fault came from
+    test: {fullName: '...', shortName: '...', context: []},
+    // details of the fault
+    error: {
+      // the error type, could be 'failure' or 'error'
+      type: 'error',
+      // the error message
+      message: 'Error: Invalid name',
+      // (optional) the backtrace as a string
+      backtrace: '    at Set.hasMember (example/lib/set.js:9:9)\n...'
+    }
+  })</pre>
+
+  <pre>reporter.update({
+    // whether the whole suite is passing or not
+    passed: true,
+    // how many tests have been executed
+    tests: 1,
+    // how many assertions have been made
+    assertions: 2,
+    // how many tests have failed
+    failures: 0,
+    // how many errors have been detected
+    errors: 0
+  })</pre>
+
+  The event for @endSuite()@ looks the same as the one for @update()@.
+

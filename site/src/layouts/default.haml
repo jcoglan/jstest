@@ -52,10 +52,15 @@
               = link 'Asynchronous tests', '/async.html'
             %li
               = link 'Reporter plugins', '/reporters.html'
+              %ul
+                %li
+                  = link 'Custom reporters', '/custom.html'
+                %li
+                  = link 'The JSON reporter', '/json.html'
     .content
       = yield
     .footer
-      Copyright &copy; James Coglan 2007&ndash;2013, released under the MIT license
+      Copyright &copy; 2007&ndash;2013 James Coglan, released under the MIT license
     %script{:type => 'text/javascript', :src => '/js/prettify.js'}
     :plain
       <script type="text/javascript">

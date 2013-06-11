@@ -44,3 +44,44 @@
   * @TestSwarm@ [@browser@] - reports progress to "TestSwarm":/testswarm.html
   * @XML@ [@text@] - prints JUnit-style XML report to stdout
 
+  Most of these can be instantiated without arguments, but some are more
+  complicated.  For example, the "@PhantomJS@ reporter":/phantom.html takes an
+  options object and a @WebPage@ instance, and relies on the test page using the
+  @JSON@ reporter - @jstest@ sets this all up for you by default.
+
+  Similarly, @jstest@ automatically selects whichever browser reporters are
+  appropriate for the current environment. Attempting to use any of the
+  browser-runner reporters (e.g. @Buster@) outside of those environments will
+  produce errors when the reporter tries to log output.
+
+  h3. The @Composite@ reporter
+
+  The @Composite@ reporter does not emit output itself but just delegates events
+  to a set of other reporters. It also makes sure that the events it's called
+  with are dispatched in the correct order to the underlying reporters, which
+  can be helpful if you're sending test events over an I/O channel that might
+  deliver events out of order.  It can be convenient to use this instead of
+  looping over a set of reporters yourself.
+
+  <pre>var R        = JS.Test.Reporters,
+      spec     = new R.Spec(),
+      exit     = new R.ExitStatus(),
+      reporter = new R.Composite([spec, exit])
+
+  // Calls both the spec and exit reporters
+  reporter.startSuite()</pre>
+
+  h3. Default reporters
+
+  If you don't specify which reporters you want to use, @jstest@ selects a
+  default set for you based on the environment.
+
+  On the server, it will use whichever text reporter is specified by the
+  @FORMAT@ environment variable, or @dot@ by default, and the @ExitStatus@
+  reporter. If you set a different text reporter using @setReporter()@, remember
+  to add the @ExitStatus@ reporter using @addReporter()@ afterwards.
+
+  In the browser, it will use the @Browser@ reporter and pick others to run
+  based on the environment. For example, if it detects it's running on Buster.JS
+  it will add the @Buster@ reporter.
+

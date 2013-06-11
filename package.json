@@ -10,9 +10,12 @@
 , "main"            : "./jstest"
 , "bin"             : {"jstest": "./bin/jstest"}
 , "preferGlobal"    : true
+, "dependencies"    : { "nopt": "" }
 , "devDependencies" : { "jsbuild": ""
                       , "jsclass": "4.0.0"
                       , "wake": ""
+                      , "event-stream": ""
+                      , "faye-websocket": ""
                       , "buster": ""
                       , "karma": ""
                       , "testem": ""
