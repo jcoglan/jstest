@@ -39,23 +39,33 @@ class Formatter
   end
 
   def group_data(group)
-    data = group.metadata[:example_group]
-    name = data[:description_args].first
-    {'fullName' => name}
+    name    = group[:description_args].first
+    context = []
+
+    while group = group[:example_group]
+      context.unshift(group[:description_args].first)
+    end
+
+    {
+      'fullName'  => (context + [name]) * ' ',
+      'shortName' => name,
+      'context'   => context
+    }
   end
 
   def example_group_started(group)
-    write('startContext', group_data(group))
+    write('startContext', group_data(group.metadata[:example_group]))
   end
 
   def example_group_finished(group)
-    write('endContext', group_data(group))
+    write('endContext', group_data(group.metadata[:example_group]))
     update
   end
 
   def example_data(example)
     data    = example.metadata
-    context = data[:example_group][:description_args]
+    group   = group_data(data[:example_group])
+    context = group['context'] + [group['shortName']]
     name    = data[:description_args].first
     {
       'fullName'  => (context + [name]) * ' ',
