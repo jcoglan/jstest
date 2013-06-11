@@ -1,3 +1,46 @@
 :textile
   h2. Reporter plugins
 
+  @jstest@ creates all its various "output formats":/formats.html and integrates
+  with "browser test runners":/browser.html using objects called reporters. A
+  reporter is an object that is notified by the framework about the progress of
+  the tests and produces output for the user to see. You can set which reporters
+  are used for a test run using this API:
+
+  <pre>JS.Test.autorun(function(runner) {
+    runner.setReporter(reporter)
+    runner.addReporter(another)
+  })</pre>
+
+  @setReporter()@ removes any existing reporters and attaches a new one.
+  @addReporter()@ adds the given reporter, without replacing the existing ones.
+
+  h3. Built-in reporters
+
+  These are all the reporters that are bundled with @jstest@. Each reporter is
+  labelled with a type: @browser@ and @server@ indicate the reporter only runs
+  in that environment, while @text@ indicates it only writes text to stdout or
+  the browser console and works in any environment.
+
+  Reporters live in the @JS.Test.Reporters@ namespace, for example to instantiate
+  the JSON reporter you call @new JS.Test.Reporters.JSON()@.
+
+  * @Browser@ [@browser@] - renders the @jstest@ browser UI
+  * @Buster@ [@browser@] - reports progress to "Buster.JS":/buster.html
+  * @Composite@ - delegates reporter events to a set of other reporters
+  * @Dot@ [@text@] - prints a dot for each passing test
+  * @Error@ [@text@] - prints error details as soon as they happen
+  * @ExitStatus@ [@server@] - makes the process exit with status @0@ or @1@
+  * @JSON@ [@text@] - prints a stream of JSON objects containing reporter events
+  * @Karma@ [@browser@] - reports progress to "Karma":/karma.html
+  * @PhantomJS@ [@server@] - reports progress of browser tests in the terminal
+  * @Progress@ [@server@] - prints an animated progress bar in the terminal
+  * @Spec@ [@text@] - prints RSpec-style nested specdoc format
+  * @TAP@ [@text@] - prints results in TAP format
+  * @TAP_JSON@ [@text@] - prints results in TAP-JSON format
+  * @TAP_YAML@ [@text@] - prints results in TAP-YAML format
+  * @Teabag@ [@browser@] - reports progress to "Teabag":/teabag.html
+  * @Testem@ [@browser@] - reports progress to "Testem":/testem.html
+  * @TestSwarm@ [@browser@] - reports progress to "TestSwarm":/testswarm.html
+  * @XML@ [@text@] - prints JUnit-style XML report to stdout
+
