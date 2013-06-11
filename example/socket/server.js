@@ -4,8 +4,7 @@ var child     = require('child_process'),
     url       = require('url'),
     WebSocket = require('faye-websocket')
 
-var root = __dirname + '/../..',
-    bin  = 'bundle',
+var bin  = 'bundle',
     base = ['exec', 'rspec', '-r', './spec/formatter', '-f', 'Formatter'],
     spec = './spec'
 
