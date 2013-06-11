@@ -35,10 +35,10 @@ class Formatter
 
   def start(size)
     @size = size
-    write('startSuite', 'size' => size)
+    write('startSuite', 'children' => [], 'size' => size)
   end
 
-  def group_data(group)
+  def group_data(group, children = [])
     name    = group[:description_args].first
     context = []
 
@@ -46,19 +46,22 @@ class Formatter
       context.unshift(group[:description_args].first)
     end
 
+    children = children.map { |g| group_data(g.metadata[:example_group]) }
+
     {
       'fullName'  => (context + [name]) * ' ',
       'shortName' => name,
-      'context'   => context
+      'context'   => context,
+      'children'  => children.map { |c| c['shortName'] }
     }
   end
 
   def example_group_started(group)
-    write('startContext', group_data(group.metadata[:example_group]))
+    write('startContext', group_data(group.metadata[:example_group], group.children))
   end
 
   def example_group_finished(group)
-    write('endContext', group_data(group.metadata[:example_group]))
+    write('endContext', group_data(group.metadata[:example_group], group.children))
     update
   end
 
