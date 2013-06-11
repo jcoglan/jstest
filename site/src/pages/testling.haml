@@ -1,0 +1,38 @@
+:textile
+  h2. Running tests on Testling CI
+
+  "testling-ci":https://ci.testling.com/ is a hosted service that runs your test
+  suite in many different browsers every time you push to GitHub. It can run any
+  test suite so long as it writes
+  "TAP":http://en.wikipedia.org/wiki/Test_Anything_Protocol to the browser
+  console. @jstest@ detects when it's running on testling-ci and enables the TAP
+  reporter for you.
+
+  All you need to do is add some config to your @package.json@ that says which
+  scripts to load and which browsers to run tests in. You'll want to load
+  @jstest@ (which we'll assume you installed through @npm@), your source and
+  test scripts, and a file that runs the tests by calling @JS.Test.autorun()@.
+
+  <pre>"testling": {
+    "scripts": [
+      "node_modules/jstest/jstest.js",
+      "example/lib/set.js",
+      "examples/spec/set_spec.js",
+      "examples/runner.js"
+    ],
+    "browsers": {
+      "chrome":   [25],
+      "iexplore": [6, 7, 8, 9, 10],
+      "firefox":  [3.6, 19],
+      "opera":    [10.5, 11.6, 12.0],
+      "safari":   [5.1, 6.0]
+    }
+  }</pre>
+
+  If the tests don't seem to be emitting TAP output, add the following to
+  @runner.js@ to enable the right reporter:
+
+  <pre>JS.Test.autorun(function(runner) {
+    runner.addReporter(new JS.Test.Reporters.TAP())
+  })</pre>
+
