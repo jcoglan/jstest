@@ -18,9 +18,9 @@
   <pre>// example/socket/server.js
 
   var child     = require('child_process'),
-      event     = require('event-stream'),
       http      = require('http'),
       url       = require('url'),
+      split     = require('split'),
       WebSocket = require('faye-websocket')
 
   var bin  = 'jstest',
@@ -38,12 +38,9 @@
         // construct ARGV for the child process
         options = tests.reduce(function(o, t) { return o.concat(['-t', t]) }, []),
         argv    = ['-f', 'json'].concat(options).concat([spec]),
+        proc    = child.spawn(bin, argv)
 
-        // spawn the test process
-        proc    = child.spawn(bin, argv),
-        split   = event.split('\n')
-
-    proc.stdout.pipe(split).pipe(ws)
+    proc.stdout.pipe(split()).pipe(ws)
   })
 
   server.listen(8888)</pre>
