@@ -9,6 +9,8 @@ Set.prototype.hasMember = function(value) {
   return this._members.hasOwnProperty(value)
 }
 
-if (typeof exports === 'object')
+if (typeof exports === 'object' && typeof WScript === 'undefined')
   exports.Set = Set
+else
+  this.Set = Set
 
