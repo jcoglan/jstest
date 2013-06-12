@@ -5,8 +5,7 @@ var child     = require('child_process'),
     WebSocket = require('faye-websocket')
 
 var bin  = 'bundle',
-    base = ['exec', 'rspec', '-r', './spec/formatter', '-f', 'Formatter'],
-    spec = './spec'
+    argv = ['exec', 'rspec', '-r', './spec/formatter', '-f', 'Formatter', './spec']
 
 var server = http.createServer()
 
@@ -17,8 +16,7 @@ server.on('upgrade', function(request, socket, body) {
       tests   = JSON.parse(params.test),
 
       options = tests.reduce(function(o, t) { return o.concat(['-e', t]) }, []),
-      argv    = base.concat(options).concat([spec]),
-      proc    = child.spawn(bin, argv)
+      proc    = child.spawn(bin, argv.concat(options))
 
   proc.stdout.pipe(split()).pipe(ws)
 })

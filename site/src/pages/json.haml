@@ -11,7 +11,7 @@
   For example if you open a connection to @ws://localhost:8888/?test=foo@ this
   server will run this process:
 
-  <pre class="cmd">jstest -f json -t foo example/spec/set_spec.js</pre>
+  <pre class="cmd">jstest -f json example/spec/set_spec.js -t foo</pre>
 
   Here's the server code:
 
@@ -24,7 +24,7 @@
       WebSocket = require('faye-websocket')
 
   var bin  = 'jstest',
-      spec = 'example/spec/set_spec.js'
+      argv = ['-f', 'json', 'example/spec/set_spec.js']
 
   var server = http.createServer()
 
@@ -37,8 +37,7 @@
 
         // construct ARGV for the child process
         options = tests.reduce(function(o, t) { return o.concat(['-t', t]) }, []),
-        argv    = ['-f', 'json'].concat(options).concat([spec]),
-        proc    = child.spawn(bin, argv)
+        proc    = child.spawn(bin, argv.concat(options))
 
     proc.stdout.pipe(split()).pipe(ws)
   })
