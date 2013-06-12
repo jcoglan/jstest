@@ -14,7 +14,7 @@
 , "devDependencies" : { "jsbuild": ""
                       , "jsclass": "4.0.0"
                       , "wake": ""
-                      , "event-stream": ""
+                      , "split": ""
                       , "faye-websocket": ""
                       , "buster": ""
                       , "karma": ""
