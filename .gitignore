@@ -1,4 +1,3 @@
-build
 Gemfile.lock
 lib/jstest.js
 node_modules
