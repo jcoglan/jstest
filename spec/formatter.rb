@@ -98,6 +98,7 @@ class Formatter
     else
       @errors += 1
     end
+    @passed = false
     update
     write('endTest', example_data(example))
   end
