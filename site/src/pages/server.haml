@@ -17,7 +17,9 @@
   import the modules we need into each spec file. Add the following to the top
   of @example/spec/set_spec.js@ to load @jstest@ and the @Set@ class.
 
-  <pre>var JS  = require('jstest'),
+  <pre>// example/spec/set_spec.js
+
+  var JS  = require('jstest'),
       Set = require('../lib/set').Set</pre>
 
   If you want to run the tests both on the server _and_ in the browser, you'll
@@ -26,7 +28,9 @@
   @require()@ statements, or add a little more boilerplate around the test so it
   can find the variables it needs whether they are globals or CommonJS modules.
 
-  <pre>(function() {
+  <pre>// example/spec/set_spec.js
+
+  (function() {
 
   var JS  = this.JS  || require('jstest'),
       Set = this.Set || require('../lib/set').Set
@@ -41,13 +45,15 @@
   doesn't, so let's add a couple of lines at the end of @example/lib/set.js@ to
   turn it into a proper module:
 
-  <pre>if (typeof exports === 'object')
+  <pre>// example/lib/set.js
+
+  if (typeof exports === 'object')
     exports.Set = Set</pre>
 
   Having done this, we can create a script to run our tests. All it does is load
   @jstest@, load all the specs, and execute them:
 
-  <pre>// examples/console.js
+  <pre>// example/console.js
 
   var JS = require('jstest')
   require('./spec/set_spec')
