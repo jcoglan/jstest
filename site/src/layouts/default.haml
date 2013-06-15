@@ -5,8 +5,8 @@
     %title jstest
     = stylesheets
     %link{'rel' => 'stylesheet', 'type' => 'text/css', 'href' => 'http://fonts.googleapis.com/css?family=Ubuntu:300,400,700,300italic,400italic,700italic|Inconsolata:400,700|Open+Sans:300italic,400italic,700italic,400,300,700|Roboto:400,300,700,300italic,400italic,700italic|Anonymous+Pro:400,700,400italic,700italic'}
-    %link{'rel' => 'stylesheet', 'type' => 'text/css', 'href' => '/js/github.css'}
   %body
+
     .nav
       %h1
         = link 'jstest', '/'
@@ -64,11 +64,14 @@
                   = link 'Custom reporters', '/custom.html'
                 %li
                   = link 'The JSON reporter', '/json.html'
+
     .content
       = yield
+
     .footer
       Copyright &copy; 2007&ndash;2013 James Coglan, released under the MIT license
-    %script{:type => 'text/javascript', :src => '/js/prettify.js'}
+
+    = javascripts 'prettify', 'analytics'
     :plain
       <script type="text/javascript">
         (function() {
@@ -79,5 +82,4 @@
           prettyPrint()
         })()
       </script>
-    %script{:type => 'text/javascript', :src => '/js/analytics.js'}
 

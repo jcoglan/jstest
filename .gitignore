@@ -2,4 +2,5 @@ Gemfile.lock
 lib/jstest.js
 node_modules
 site/site/*.html
+site/site/stylesheets/screen.css
 
