@@ -1,4 +1,4 @@
-(function() {
+~function() {
 
 var JS  = this.JS  || require('../../build/jstest'),
     Set = this.Set || require('../lib/set').Set
@@ -19,5 +19,5 @@ JS.Test.describe('Set', function() { with(this) {
   }})
 }})
 
-})()
+}()
 

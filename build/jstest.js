@@ -432,14 +432,11 @@ Package.CommonJSLoader = {
   },
 
   loadFile: function(path, fireCallbacks) {
-    var file;
+    var file, module;
 
     if (typeof process !== 'undefined') {
-      var cwd    = process.cwd(),
-          module = path.replace(/\.[^\.]+$/g, ''),
-          path   = require('path');
-
-      file = path.resolve(module);
+      module = path.replace(/\.[^\.]+$/g, '');
+      file   = require('path').resolve(module);
     }
     else if (typeof phantom !== 'undefined') {
       file = phantom.libraryPath.replace(/\/$/, '') + '/' +
@@ -944,7 +941,7 @@ JS.extend(JS.Method.prototype, {
           _own:   this.hasOwnProperty(keyword.name)
         };
         kwd = keyword.filter(method, environment, this, arguments);
-        kwd.__kwd__ = true;
+        if (kwd) kwd.__kwd__ = true;
         this[keyword.name] = kwd;
       }
       var returnValue = callable.apply(this, arguments),
@@ -1427,16 +1424,22 @@ JS.Method.keyword('callSuper', function(method, env, receiver, args) {
       stackIndex = methods.length - 1,
       params     = JS.array(args);
 
-  return function() {
+  if (stackIndex === 0) return undefined;
+
+  var _super = function() {
     var i = arguments.length;
     while (i--) params[i] = arguments[i];
 
     stackIndex -= 1;
+    if (stackIndex === 0) delete receiver.callSuper;
     var returnValue = methods[stackIndex].apply(receiver, params);
+    receiver.callSuper = _super;
     stackIndex += 1;
 
     return returnValue;
   };
+
+  return _super;
 });
 
 JS.Method.keyword('blockGiven', function(method, env, receiver, args) {
@@ -2253,7 +2256,8 @@ var Console = new JS.Module('Console', {
         magenta:    '35m',
         cyan:       '36m',
         white:      '37m',
-        nocolor:    '39m'
+        nocolor:    '39m',
+        grey:       '90m'
       },
 
       background: {
@@ -2431,17 +2435,17 @@ Console.extend({
     },
 
     __queue__: [],
-    __state__: {},
+    __state__: null,
 
     format: function(type, name) {
       name = name.replace(/^bg/, '');
 
-      var state = JS.extend({}, this.__state__),
+      var state = JS.extend({}, this.__state__ || {}),
           color = this.COLORS[name] || name,
           no    = /^no/.test(name);
 
       if (type === 'reset')
-        state = {};
+        state = null;
       else if (no)
         delete state[type];
       else if (type === 'weight')
@@ -2455,9 +2459,9 @@ Console.extend({
       else if (type === 'background')
         state.background = 'background-color: ' + color;
       else
-        state = null;
+        state = undefined;
 
-      if (state) {
+      if (state !== undefined) {
         this.__state__ = state;
         this.__queue__.push(state);
       }
@@ -2470,10 +2474,14 @@ Console.extend({
     puts: function(string) {
       this.print(string);
       var buffer = '', formats = [], item;
-      while (item = this.__queue__.shift()) {
+      while ((item = this.__queue__.shift()) !== undefined) {
         if (typeof item === 'string') {
-          buffer += '%c' + item;
-          formats.push(this._serialize(this.__state__));
+          if (this.__state__) {
+            buffer += '%c' + item;
+            formats.push(this._serialize(this.__state__));
+          } else {
+            buffer += item;
+          }
         } else {
           this.__state__ = item;
         }
@@ -2612,7 +2620,7 @@ Console.WSH     = (typeof WScript !== 'undefined');
 var useColor = false, ua;
 if (Console.BROWSER) {
   ua = navigator.userAgent;
-  if (window.console && (/Firefox/.test(ua) || /Chrome/.test(ua)))
+  if (window.console && /Chrome/.test(ua))
     useColor = true;
 }
 
@@ -5333,7 +5341,10 @@ Test.Reporters.extend({
       this.puts(index + ') ' + this.NAMES[fault.error.type] + ': ' + fault.test.fullName);
       this.reset();
       this.puts(fault.error.message);
-      if (fault.error.backtrace) this.puts(fault.error.backtrace);
+      if (fault.error.backtrace) {
+        this.grey();
+        this.puts(fault.error.backtrace);
+      }
       this.reset();
       this.puts('');
     },
