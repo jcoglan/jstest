@@ -27,3 +27,25 @@
   for the script. Alternatively, you can omit the @format@ option and use the
   @FORMAT@ environment variable instead.
 
+  One caveat: SlimerJS at time of writing has no way of setting the process exit
+  status, so your tests might fail but the process will still exit with status
+  @0@. You need to rely on machine-readable output formats to detect failures,
+  for example using the @xml@ output format or using @tap-j@ and piping it into
+  "tapout":http://rubyworks.github.io/tapout/.
+
+  <pre class="cmd">$ FORMAT=tap-j slimerjs slimer.js | tapout 
+  Started
+  ..F
+
+  1. FAIL adds a list item when the text is clicked
+
+      <"added"> expected but was
+      <"">
+
+  Finished in 0.026s (115.385 test/s, 0.008667s avg.)
+
+  3 tests: 2 pass, 1 fail, 0 exit, 0 todo, 0 omit
+
+  $ echo $?
+  255</pre>
+
