@@ -1,30 +1,29 @@
 :textile
-  h2. Running tests with PhantomJS
+  h2. Running tests with SlimerJS
 
   If you've gone through the "Getting started":/intro.html and "Loading your
   code":/loading.html tutorials, this article will show you how to run your
-  tests using "PhantomJS":http://phantomjs.org.
+  tests using "SlimerJS":http://slimerjs.org.
 
   If you have an existing web page that runs your @jstest@ suite, then running
-  it with PhantomJS is straight-forward. Create this script next to the other
+  it with SlimerJS is straight-forward. Create this script next to the other
   example project files:
 
-  <pre>// example/phantom.js
-
-  phantom.injectJs('build/jstest.js')
-
-  var options  = {format: 'dot'},
+  <pre>// slimer.js
+  
+  var JS       = require('./build/jstest'),
+      options  = {format: 'dot'},
       reporter = new JS.Test.Reporters.Headless(options)
 
-  reporter.open('example/browser.html')</pre>
+  reporter.open('http://localhost:4180/example/browser.html')</pre>
+
+  Start a local server so that Slimer can load your files:
+
+  <pre class="cmd">$ python -m SimpleHTTPServer 4180</pre>
 
   If you run this script you should see the results in your terminal.
-
-  !/images/phantom1.png!
 
   You can use the @options@ object to specify the "output format":/formats.html
   for the script. Alternatively, you can omit the @format@ option and use the
   @FORMAT@ environment variable instead.
-
-  !/images/phantom2.png!
 

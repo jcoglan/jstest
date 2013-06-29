@@ -982,9 +982,9 @@ JS.Method.create = function(module, name, callable) {
 };
 
 JS.Method.compile = function(method, environment) {
-  return method && method.compile
-       ? method.compile(environment)
-       : method;
+  return (method instanceof this)
+      ? method.compile(environment)
+      : method;
 };
 
 JS.Method.__listeners__ = [];
@@ -5424,7 +5424,7 @@ Test.Reporters.extend({
     extend: {
       create: function() {
         if (!JS.ENV.navigator) return;
-        if (/\bPhantomJS\b/.test(navigator.userAgent)) return new this();
+        if (Test.Reporters.Headless.UA.test(navigator.userAgent)) return new this();
       },
 
       Reader: new JS.Class({
@@ -5551,10 +5551,15 @@ Test.Reporters.extend({
 });
 
 // http://phantomjs.org/
+// http://slimerjs.org/
 
 Test.Reporters.extend({
-  PhantomJS: new JS.Class({
-    initialize: function(options, page) {
+  Headless: new JS.Class({
+    extend: {
+      UA: /\b(PhantomJS|SlimerJS)\b/
+    },
+
+    initialize: function(options) {
       this._options = options || {};
 
       var format = Console.envvar('FORMAT');
@@ -5564,15 +5569,23 @@ Test.Reporters.extend({
 
       var R        = Test.Reporters,
           Printer  = R.get(this._options.format) || R.Dot,
-          reporter = new R.Composite(),
-          bridge   = new R.JSON.Reader(reporter);
+          reporter = new R.Composite();
 
       reporter.addReporter(new Printer(options));
       reporter.addReporter(new R.ExitStatus());
 
-      page.onConsoleMessage = function(m) {
-        if (!bridge.read(m)) console.log(m);
+      this._reader = new R.JSON.Reader(reporter);
+    },
+
+    open: function(url) {
+      var page = (typeof WebPage === 'function') ? new WebPage() : require('webpage').create(),
+          self = this;
+
+      page.onConsoleMessage = function(message) {
+        if (!self._reader.read(message)) console.log(message);
       };
+      page.open(url);
+      return page;
     }
   })
 });
