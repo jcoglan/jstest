@@ -1,42 +1,3 @@
-/**
- * JS.Class: Ruby-style JavaScript
- * http://jsclass.jcoglan.com
- * Copyright (c) 2007-2013 James Coglan and contributors
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * Parts of the Software build on techniques from the following open-source
- * projects:
- * 
- * * The Prototype framework, (c) 2005-2010 Sam Stephenson (MIT license)
- * * Alex Arnell's Inheritance library, (c) 2006 Alex Arnell (MIT license)
- * * Base, (c) 2006-2010 Dean Edwards (MIT license)
- * 
- * The Software contains direct translations to JavaScript of these open-source
- * Ruby libraries:
- * 
- * * Ruby standard library modules, (c) Yukihiro Matsumoto and contributors (Ruby license)
- * * Test::Unit, (c) 2000-2003 Nathaniel Talbott (Ruby license)
- * * Context, (c) 2008 Jeremy McAnally (MIT license)
- * * EventMachine::Deferrable, (c) 2006-07 Francis Cianfrocca (Ruby license)
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- **/
-
 var JS = (typeof this.JS === 'undefined') ? {} : this.JS;
 JS.Date = Date;
 
@@ -375,26 +336,36 @@ Package._autoload = function(pattern, options) {
 Package._manufacture = function(name) {
   var autoloaders = this._autoloaders,
       n = autoloaders.length,
-      i, autoloader, path;
+      i, j, autoloader, path;
 
   for (i = 0; i < n; i++) {
     autoloader = autoloaders[i];
     if (!autoloader[0].test(name)) continue;
 
-    path = autoloader[1].from + '/' +
-           name.replace(/([a-z])([A-Z])/g, function(m,a,b) { return a + '_' + b })
-               .replace(/\./g, '/')
-               .toLowerCase() + '.js';
+    path = autoloader[1].from;
+    if (typeof path === 'string') path = this._convertNameToPath(path);
 
-    var pkg = new this([path]);
+    var pkg = new this([path(name)]);
     pkg.provides(name);
 
-    if (path = autoloader[1].require)
-      pkg.requires(name.replace(autoloader[0], path));
+    if (path = autoloader[1].require) {
+      path = [].concat(path);
+      j = path.length;
+      while (j--) pkg.requires(name.replace(autoloader[0], path[i]));
+    }
 
     return pkg;
   }
   return null;
+};
+
+Package._convertNameToPath = function(from) {
+  return function(name) {
+    return from.replace(/\/?$/, '/') +
+           name.replace(/([a-z])([A-Z])/g, function(m,a,b) { return a + '_' + b })
+               .replace(/\./g, '/')
+               .toLowerCase() + '.js';
+  };
 };
 
 //================================================================
@@ -1568,6 +1539,29 @@ var Enumerable = new JS.Module('Enumerable', {
     return !!truth;
   },
 
+  chunk: function(block, context) {
+    if (!block) return this.enumFor('chunk');
+
+    var result  = [],
+        value   = null,
+        started = false;
+
+    this.forEach(function(item) {
+      var v = block.apply(context, arguments);
+      if (started) {
+        if (Enumerable.areEqual(value, v))
+          result[result.length - 1][1].push(item);
+        else
+          result.push([v, [item]]);
+      } else {
+        result.push([v, [item]]);
+        started = true;
+      }
+      value = v;
+    });
+    return result;
+  },
+
   count: function(block, context) {
     if (typeof this.size === 'function') return this.size();
     var count = 0, object = block;
@@ -1948,6 +1942,7 @@ Enumerable.alias({
   every:      'all',
   findAll:    'select',
   filter:     'select',
+  reduce:     'inject',
   some:       'any'
 });
 
@@ -2002,8 +1997,8 @@ Enumerable.extend({
       this._args   = (args || []).slice();
     },
 
-    // this is largely here to support testing
-    // since I don't want to make the ivars public
+    // this is largely here to support testing since I don't want to make the
+    // ivars public
     equals: function(enumerator) {
       return JS.isType(enumerator, this.klass) &&
              this._object === enumerator._object &&
@@ -2288,7 +2283,7 @@ Console.extend({
     coloring: function() {
       return !this.envvar(Console.NO_COLOR);
     },
-    
+
     echo: function(string) {
       if (typeof console !== 'undefined') return console.log(string);
       if (typeof print === 'function')    return print(string);
@@ -3065,6 +3060,12 @@ var Hash = new JS.Class('Hash', {
     return true;
   },
 
+  keepIf: function(block, context) {
+    return this.removeIf(function() {
+      return !block.apply(context, arguments);
+    });
+  },
+
   key: function(value) {
     var result = null;
     this.forEach(function(pair) {
@@ -3416,6 +3417,12 @@ var Set = new JS.Class('Set', {
 
   isSuperset: function(other) {
     return other.isSubset(this);
+  },
+
+  keepIf: function(block, context) {
+    return this.removeIf(function() {
+      return !block.apply(context, arguments);
+    });
   },
 
   merge: function(list) {
@@ -3916,98 +3923,72 @@ JS.Kernel.include({
   delete JS.Module.__queue__;
 })();
 
-// Last updated December 30 2010 (483 methods)
 MethodChain.addMethods([
-  'abs', 'accept', 'acceptCharset', 'accesskey', 'acos', 'action', 'add',
-  'addEventListener', 'alt', 'altKey', 'anchor', 'appendChild', 'apply',
-  'archive', 'arguments', 'arity', 'asin', 'atan', 'atan2', 'attributes',
-  'autocomplete', 'autofocus', 'azimuth', 'background', 'backgroundAttachment',
-  'backgroundColor', 'backgroundImage', 'backgroundPosition', 'backgroundRepeat',
-  'baseURI', 'baseURIObject', 'big', 'bind', 'blink', 'blur', 'bold', 'border',
-  'borderBottom', 'borderBottomColor', 'borderBottomStyle', 'borderBottomWidth',
-  'borderCollapse', 'borderColor', 'borderLeft', 'borderLeftColor',
-  'borderLeftStyle', 'borderLeftWidth', 'borderRight', 'borderRightColor',
-  'borderRightStyle', 'borderRightWidth', 'borderSpacing', 'borderStyle',
-  'borderTop', 'borderTopColor', 'borderTopStyle', 'borderTopWidth',
-  'borderWidth', 'bottom', 'bubbles', 'button', 'call', 'caller', 'cancelBubble',
-  'cancelable', 'captionSide', 'ceil', 'charAt', 'charCode', 'charCodeAt',
-  'checkValidity', 'childNodes', 'classList', 'className', 'clear', 'click',
-  'clientHeight', 'clientLeft', 'clientTop', 'clientWidth', 'clientX', 'clientY',
-  'clip', 'cloneNode', 'codebase', 'codetype', 'color', 'cols',
-  'compareDocumentPosition', 'concat', 'constructor', 'content', 'cos',
-  'counterIncrement', 'counterReset', 'create', 'cssFloat', 'ctrlKey', 'cue',
-  'cueAfter', 'cueBefore', 'currentTarget', 'cursor', 'data', 'declare',
-  'defineProperties', 'defineProperty', 'description', 'detail', 'dir',
-  'direction', 'disabled', 'dispatchEvent', 'display', 'elements', 'elevation',
-  'emptyCells', 'encoding', 'enctype', 'eval', 'eventPhase', 'every', 'exec',
-  'exp', 'explicitOriginalTarget', 'fileName', 'filter', 'firstChild', 'fixed',
-  'floor', 'focus', 'font', 'fontFamily', 'fontSize', 'fontSizeAdjust',
-  'fontStretch', 'fontStyle', 'fontVariant', 'fontWeight', 'fontcolor',
-  'fontsize', 'for', 'forEach', 'formaction', 'formenctype', 'formmethod',
-  'formnovalidate', 'formtarget', 'freeze', 'fromCharCode', 'getAttribute',
-  'getAttributeNS', 'getAttributeNode', 'getAttributeNodeNS', 'getDate',
-  'getDay', 'getElementsByClassName', 'getElementsByTagName',
-  'getElementsByTagNameNS', 'getFullYear', 'getHours', 'getMilliseconds',
-  'getMinutes', 'getMonth', 'getOwnPropertyDescriptor', 'getOwnPropertyNames',
-  'getPrototypeOf', 'getSeconds', 'getTime', 'getTimezoneOffset', 'getUTCDate',
-  'getUTCDay', 'getUTCFullYear', 'getUTCHours', 'getUTCMilliseconds',
-  'getUTCMinutes', 'getUTCMonth', 'getUTCSeconds', 'getYear', 'global',
-  'hasAttribute', 'hasAttributeNS', 'hasAttributes', 'hasChildNodes',
-  'hasOwnProperty', 'height', 'href', 'id', 'ignoreCase', 'imeMode', 'index',
-  'indexOf', 'initEvent', 'initKeyEvent', 'initMessageEvent', 'initMouseEvent',
-  'initUIEvent', 'innerHTML', 'input', 'insertBefore', 'isArray', 'isChar',
-  'isDefaultNamespace', 'isExtensible', 'isFrozen', 'isPrototypeOf',
-  'isSameNode', 'isSealed', 'isSupported', 'ismap', 'italics', 'item', 'join',
-  'keyCode', 'keys', 'lang', 'lastChild', 'lastIndex', 'lastIndexOf', 'layerX',
-  'layerY', 'left', 'length', 'letterSpacing', 'lineHeight', 'lineNumber',
-  'link', 'listStyle', 'listStyleImage', 'listStylePosition', 'listStyleType',
-  'localName', 'localeCompare', 'log', 'map', 'margin', 'marginBottom',
-  'marginLeft', 'marginRight', 'marginTop', 'markerOffset', 'marks', 'match',
-  'max', 'maxHeight', 'maxWidth', 'maxlength', 'message', 'metaKey', 'method',
-  'min', 'minHeight', 'minWidth', 'mozGetFileNameArray', 'mozInputSource',
-  'mozMatchesSelector', 'mozSetFileNameArray', 'multiline', 'multiple', 'name',
-  'namedItem', 'namespaceURI', 'nextSibling', 'nodeArg', 'nodeName',
-  'nodePrincipal', 'nodeType', 'nodeValue', 'normalize', 'novalidate', 'now',
-  'nsIDOMNodeList', 'nsIPrincipal', 'nsIURI', 'number', 'offsetHeight',
-  'offsetLeft', 'offsetParent', 'offsetTop', 'offsetWidth', 'onafterprint',
-  'onbeforeprint', 'onbeforeunload', 'onhashchange', 'onmessage', 'onoffline',
-  'ononline', 'onpopstate', 'onredo', 'onresize', 'onundo', 'onunload',
-  'opacity', 'originalTarget', 'orphans', 'otherNode', 'outline', 'outlineColor',
-  'outlineOffset', 'outlineStyle', 'outlineWidth', 'overflow', 'overflowX',
-  'overflowY', 'ownerDocument', 'padding', 'paddingBottom', 'paddingLeft',
-  'paddingRight', 'paddingTop', 'page', 'pageBreakAfter', 'pageBreakBefore',
-  'pageBreakInside', 'pageX', 'pageY', 'parentNode', 'parse', 'pattern', 'pause',
-  'pauseAfter', 'pauseBefore', 'pitch', 'pitchRange', 'placeholder',
-  'playDuring', 'pop', 'position', 'pow', 'prefix', 'preventBubble',
-  'preventCapture', 'preventDefault', 'preventExtensions', 'previousSibling',
-  'propertyIsEnumerable', 'prototype', 'push', 'querySelector',
-  'querySelectorAll', 'quote', 'quotes', 'random', 'readonly', 'reduce',
-  'reduceRight', 'relatedTarget', 'remove', 'removeAttribute',
-  'removeAttributeNS', 'removeAttributeNode', 'removeChild',
-  'removeEventListener', 'replace', 'replaceChild', 'required', 'reset',
-  'reverse', 'richness', 'right', 'round', 'rows', 'screenX', 'screenY',
-  'scrollHeight', 'scrollIntoView', 'scrollLeft', 'scrollTop', 'scrollWidth',
-  'seal', 'search', 'select', 'setAttribute', 'setAttributeNS',
-  'setAttributeNode', 'setAttributeNodeNS', 'setCapture', 'setCustomValidity',
-  'setDate', 'setFullYear', 'setHours', 'setMilliseconds', 'setMinutes',
-  'setMonth', 'setSeconds', 'setSelectionRange', 'setTime', 'setUTCDate',
-  'setUTCFullYear', 'setUTCHours', 'setUTCMilliseconds', 'setUTCMinutes',
-  'setUTCMonth', 'setUTCSeconds', 'setYear', 'shift', 'shiftKey', 'sin', 'size',
-  'slice', 'small', 'some', 'sort', 'source', 'speak', 'speakHeader',
-  'speakNumeral', 'speakPunctuation', 'speechRate', 'spellcheck', 'splice',
-  'split', 'sqrt', 'src', 'stack', 'standby', 'step', 'sticky',
-  'stopPropagation', 'stress', 'strike', 'style', 'sub', 'submit', 'substr',
-  'substring', 'sup', 'tabIndex', 'tableLayout', 'tagName', 'tan', 'target',
-  'test', 'textAlign', 'textContent', 'textDecoration', 'textIndent',
-  'textShadow', 'textTransform', 'timeStamp', 'title', 'toDateString',
-  'toExponential', 'toFixed', 'toGMTString', 'toJSON', 'toLocaleDateString',
-  'toLocaleFormat', 'toLocaleLowerCase', 'toLocaleString', 'toLocaleTimeString',
-  'toLocaleUpperCase', 'toLowerCase', 'toPrecision', 'toSource', 'toString',
-  'toTimeString', 'toUTCString', 'toUpperCase', 'top', 'trim', 'trimLeft',
-  'trimRight', 'type', 'unicodeBidi', 'unshift', 'unwatch', 'usemap', 'valueOf',
-  'verticalAlign', 'view', 'visibility', 'voiceFamily', 'volume', 'watch',
-  'which', 'whiteSpace', 'widows', 'width', 'wordSpacing', 'wordWrap', 'wrap',
-  'zIndex'
+  "abs", "acos", "addEventListener", "anchor", "animation", "appendChild",
+  "apply", "arguments", "arity", "asin", "atan", "atan2", "attributes", "auto",
+  "background", "baseURI", "baseURIObject", "big", "bind", "blink", "blur",
+  "bold", "border", "bottom", "bubbles", "call", "caller", "cancelBubble",
+  "cancelable", "ceil", "charAt", "charCodeAt", "childElementCount",
+  "childNodes", "children", "classList", "className", "clear", "click",
+  "clientHeight", "clientLeft", "clientTop", "clientWidth", "clip",
+  "cloneNode", "color", "columns", "compareDocumentPosition", "concat",
+  "constructor", "contains", "content", "contentEditable", "cos", "create",
+  "css", "currentTarget", "cursor", "dataset", "defaultPrevented",
+  "defineProperties", "defineProperty", "dir", "direction", "dispatchEvent",
+  "display", "endsWith", "eval", "eventPhase", "every", "exec", "exp",
+  "explicitOriginalTarget", "filter", "firstChild", "firstElementChild",
+  "fixed", "flex", "float", "floor", "focus", "font", "fontcolor", "fontsize",
+  "forEach", "freeze", "fromCharCode", "getAttribute", "getAttributeNS",
+  "getAttributeNode", "getAttributeNodeNS", "getBoundingClientRect",
+  "getClientRects", "getDate", "getDay", "getElementsByClassName",
+  "getElementsByTagName", "getElementsByTagNameNS", "getFeature",
+  "getFullYear", "getHours", "getMilliseconds", "getMinutes", "getMonth",
+  "getOwnPropertyDescriptor", "getOwnPropertyNames", "getPrototypeOf",
+  "getSeconds", "getTime", "getTimezoneOffset", "getUTCDate", "getUTCDay",
+  "getUTCFullYear", "getUTCHours", "getUTCMilliseconds", "getUTCMinutes",
+  "getUTCMonth", "getUTCSeconds", "getUserData", "getYear", "global",
+  "hasAttribute", "hasAttributeNS", "hasAttributes", "hasChildNodes",
+  "hasOwnProperty", "height", "hyphens", "icon", "id", "ignoreCase", "imul",
+  "indexOf", "inherit", "initEvent", "initial", "innerHTML",
+  "insertAdjacentHTML", "insertBefore", "is", "isArray", "isContentEditable",
+  "isDefaultNamespace", "isEqualNode", "isExtensible", "isFinite", "isFrozen",
+  "isGenerator", "isInteger", "isNaN", "isPrototypeOf", "isSameNode",
+  "isSealed", "isSupported", "isTrusted", "italics", "join", "keys", "lang",
+  "lastChild", "lastElementChild", "lastIndex", "lastIndexOf", "left",
+  "length", "link", "localName", "localeCompare", "log", "lookupNamespaceURI",
+  "lookupPrefix", "map", "margin", "marks", "mask", "match", "max", "min",
+  "mozMatchesSelector", "mozRequestFullScreen", "multiline", "name",
+  "namespaceURI", "nextElementSibling", "nextSibling", "nodeArg", "nodeName",
+  "nodePrincipal", "nodeType", "nodeValue", "none", "normal", "normalize",
+  "now", "offsetHeight", "offsetLeft", "offsetParent", "offsetTop",
+  "offsetWidth", "opacity", "order", "originalTarget", "orphans", "otherNode",
+  "outerHTML", "outline", "overflow", "ownerDocument", "padding", "parentNode",
+  "parse", "perspective", "pop", "position", "pow", "prefix", "preventBubble",
+  "preventCapture", "preventDefault", "preventExtensions",
+  "previousElementSibling", "previousSibling", "propertyIsEnumerable",
+  "prototype", "push", "querySelector", "querySelectorAll", "quote", "quotes",
+  "random", "reduce", "reduceRight", "removeAttribute", "removeAttributeNS",
+  "removeAttributeNode", "removeChild", "removeEventListener", "replace",
+  "replaceChild", "resize", "reverse", "right", "round", "schemaTypeInfo",
+  "scrollHeight", "scrollIntoView", "scrollLeft", "scrollTop", "scrollWidth",
+  "seal", "search", "setAttribute", "setAttributeNS", "setAttributeNode",
+  "setAttributeNodeNS", "setCapture", "setDate", "setFullYear", "setHours",
+  "setIdAttribute", "setIdAttributeNS", "setIdAttributeNode",
+  "setMilliseconds", "setMinutes", "setMonth", "setSeconds", "setTime",
+  "setUTCDate", "setUTCFullYear", "setUTCHours", "setUTCMilliseconds",
+  "setUTCMinutes", "setUTCMonth", "setUTCSeconds", "setUserData", "setYear",
+  "shift", "sin", "slice", "small", "some", "sort", "source", "spellcheck",
+  "splice", "split", "sqrt", "startsWith", "sticky",
+  "stopImmediatePropagation", "stopPropagation", "strike", "style", "sub",
+  "substr", "substring", "sup", "tabIndex", "tagName", "tan", "target", "test",
+  "textContent", "timeStamp", "title", "toDateString", "toExponential",
+  "toFixed", "toGMTString", "toISOString", "toInteger", "toJSON",
+  "toLocaleDateString", "toLocaleFormat", "toLocaleLowerCase",
+  "toLocaleString", "toLocaleTimeString", "toLocaleUpperCase", "toLowerCase",
+  "toPrecision", "toSource", "toString", "toTimeString", "toUTCString",
+  "toUpperCase", "top", "transform", "transition", "trim", "trimLeft",
+  "trimRight", "type", "unshift", "unwatch", "valueOf", "visibility", "w3c",
+  "watch", "widows", "width"
 ]);
 
 exports.MethodChain = MethodChain;
@@ -5454,7 +5435,7 @@ Test.Reporters.extend({
         if (JS.indexOf(parts, this.HOSTNAME) >= 0) return new this(options);
       }
     },
- 
+
     include: Console,
 
     startSuite: function(event) {
@@ -6713,7 +6694,7 @@ Test.extend({
         },
 
         __runNextStep__: function(error) {
-          if (error !== undefined) return this.addError(error);
+          if (typeof error === 'object') return this.addError(error);
 
           var step = this.__stepQueue__.shift(), n;
 

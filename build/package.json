@@ -25,7 +25,7 @@
 
 , "scripts"         : { "build"     : "jsbuild -m node_modules/jsclass/src/loader.js -s JS.Test > lib/jstest.js && wake"
                       , "clean"     : "rm -rf build lib/jstest.js"
-                      , "testling"  : "cat build/jstest.js example/lib/set.js example/spec/set_spec.js example/testling.js | testling"
+                      , "testling"  : "node example/testling.js | xargs cat | testling"
                       }
 
 , "repository"      : { "type"  : "git"
@@ -80,7 +80,5 @@
       "firefox":  [3.6, 19],
       "opera":    [10.5, 11.6, 12.0],
       "safari":   [5.1, 6.0]
-    }
-  }
-}
+} } }
 
