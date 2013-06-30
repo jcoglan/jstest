@@ -4374,6 +4374,14 @@ Test.Unit.extend({
 });
 
 Test.Unit.extend({
+  isFailure: function(error) {
+    var types = Test.ASSERTION_ERRORS, i = types.length;
+    while (i--) {
+      if (JS.isType(error, types[i])) return true;
+    }
+    return false;
+  },
+
   AssertionFailedError: new JS.Class(Error, {
     initialize: function(message) {
       this.message = message.toString();
@@ -4592,7 +4600,7 @@ Test.Unit.extend({
         try {
           block.call(context);
         } catch (e) {
-          if ((args.length === 0 && !JS.isType(e, Test.Unit.AssertionFailedError)) ||
+          if ((args.length === 0 && !Test.Unit.isFailure(e)) ||
               expected.any(function(type) { return JS.isType(e, type) }))
             this.assertBlock(this.buildMessage(message, 'Exception thrown:\n?', e), function() { return false });
           else
@@ -4626,6 +4634,13 @@ Test.Unit.extend({
     addAssertion: function() {}
   })
 });
+
+Test.extend({
+  ASSERTION_ERRORS: [Test.Unit.AssertionFailedError]
+});
+
+if (Console.NODE)
+  Test.ASSERTION_ERRORS.push(require('assert').AssertionError);
 
 Test.Unit.extend({
   AssertionMessage: new JS.Class({
@@ -4966,7 +4981,7 @@ Test.Unit.extend({
       processError: function(testCase, error) {
         if (!error) return;
 
-        if (JS.isType(error, Test.Unit.AssertionFailedError))
+        if (Test.Unit.isFailure(error))
           testCase.addFailure(error.message);
         else
           testCase.addError(error);
