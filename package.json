@@ -73,12 +73,13 @@
       "example/testling.js"
     ],
     "browsers": {
-      "chrome":   [25],
-      "iexplore": [6, 7, 8, 9, 10],
-      "ipad":     [6.0],
-      "iphone":   [6.0],
-      "firefox":  [3.6, 19],
-      "opera":    [10.5, 11.6, 12.0],
-      "safari":   [5.1, 6.0]
+      "android-browser":  [4.2],
+      "chrome":           [25],
+      "iexplore":         [6, 7, 8, 9, 10],
+      "ipad":             [6.0],
+      "iphone":           [6.0],
+      "firefox":          [3.6, 19],
+      "opera":            [10.5, 11.6, 12.0],
+      "safari":           [5.1, 6.0]
 } } }
 
