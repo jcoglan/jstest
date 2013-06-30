@@ -6,7 +6,15 @@
 
   You are free to use any other assertion library you like; as long as your
   assertions throw errors when invalid, those errors will be caught and reported
-  by @jstest@.
+  by @jstest@. To make @jstest@ report these errors as failures, add the type of
+  error your assertion library throws to this list:
+
+  <pre>Test.ASSERTION_ERRORS.push(assert.AssertionError);</pre>
+
+  (@jstest@ treats @AssertionError@ from the Node @assert@ module as a failure
+  out of the box.)
+
+  The assertions provided by @jstest@ are listed below.
 
   h3. @assertBlock([message, ]callback)@
 
