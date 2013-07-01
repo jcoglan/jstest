@@ -5,14 +5,14 @@
 , "keywords"        : ["testing"]
 , "license"         : "MIT"
 
-, "version"         : "1.0.0"
+, "version"         : "1.0.1"
 , "engines"         : {"node": ">=0.4.0"}
 , "main"            : "./jstest"
 , "bin"             : {"jstest": "./bin/jstest"}
 , "preferGlobal"    : true
 , "dependencies"    : { "nopt": "" }
-, "devDependencies" : { "jsbuild": ""
-                      , "jsclass": "4.0.0"
+, "devDependencies" : { "jsbuild": "1.0.1"
+                      , "jsclass": "4.0.1"
                       , "wake": ""
                       , "split": ""
                       , "faye-websocket": ""
