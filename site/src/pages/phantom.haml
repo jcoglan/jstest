@@ -13,11 +13,10 @@
 
   phantom.injectJs('build/jstest.js')
 
-  var page     = new WebPage(),
-      options  = {format: 'dot'},
-      reporter = new JS.Test.Reporters.PhantomJS(options, page)
+  var options  = {format: 'dot'},
+      reporter = new JS.Test.Reporters.Headless(options)
 
-  page.open('example/browser.html')</pre>
+  reporter.open('example/browser.html')</pre>
 
   If you run this script you should see the results in your terminal.
 

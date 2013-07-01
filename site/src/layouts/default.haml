@@ -4,14 +4,14 @@
     %meta{'http-equiv' => 'Content-Type', :content => 'text/html; charset=utf-8'}
     %title jstest
     = stylesheets
-    %link{'rel' => 'stylesheet', 'type' => 'text/css', 'href' => 'http://fonts.googleapis.com/css?family=Ubuntu:300,400,700,300italic,400italic,700italic|Inconsolata:400,700|Open+Sans:300italic,400italic,700italic,400,300,700|Roboto:400,300,700,300italic,400italic,700italic|Anonymous+Pro:400,700,400italic,700italic'}
-    %link{'rel' => 'stylesheet', 'type' => 'text/css', 'href' => '/js/github.css'}
+    %link{'rel' => 'stylesheet', 'type' => 'text/css', 'href' => 'http://fonts.googleapis.com/css?family=Inconsolata:400,700|Open+Sans:300italic,400italic,700italic,400,300,700'}
   %body
+
     .nav
       %h1
         = link 'jstest', '/'
       %p.download
-        = link 'Download v1.0.0', '/assets/jstest.1-0-0.zip'
+        = link 'Download v1.0.1', '/assets/jstest.1-0-1.zip'
       %ul
         %li
           = link 'Getting started', '/intro.html'
@@ -27,6 +27,8 @@
             %li
               = link 'PhantomJS', '/phantom.html'
             %li
+              = link 'SlimerJS', '/slimer.html'
+            %li
               = link 'Teabag', '/teabag.html'
             %li
               = link 'Testem', '/testem.html'
@@ -38,9 +40,11 @@
           = link 'Server-side testing', '/server.html'
           %ul
             %li
+              = link 'Output formats', '/formats.html'
+            %li
               = link 'jstest for Node.js', '/node.html'
             %li
-              = link 'Output formats', '/formats.html'
+              = link 'Windows Script Host', '/wsh.html'
         %li
           = link 'API reference', '/api.html'
           %ul
@@ -50,6 +54,9 @@
               = link 'Assertions', '/assertions.html'
             %li
               = link 'Stubbing and mocking', '/mocking.html'
+              %ul
+                %li
+                  = link 'Fake timers', '/timers.html'
             %li
               = link 'Asynchronous tests', '/async.html'
             %li
@@ -58,12 +65,17 @@
                 %li
                   = link 'Custom reporters', '/custom.html'
                 %li
+                  = link 'Console output', '/console.html'
+                %li
                   = link 'The JSON reporter', '/json.html'
+
     .content
       = yield
+
     .footer
       Copyright &copy; 2007&ndash;2013 James Coglan, released under the MIT license
-    %script{:type => 'text/javascript', :src => '/js/prettify.js'}
+
+    = javascripts 'prettify', 'analytics'
     :plain
       <script type="text/javascript">
         (function() {
@@ -74,5 +86,4 @@
           prettyPrint()
         })()
       </script>
-    %script{:type => 'text/javascript', :src => '/js/analytics.js'}
 

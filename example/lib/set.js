@@ -12,3 +12,6 @@ Set.prototype.hasMember = function(value) {
 if (typeof exports === 'object')
   exports.Set = Set
 
+if (typeof WScript !== 'undefined')
+  this.Set = Set
+

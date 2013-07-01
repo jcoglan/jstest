@@ -1,0 +1,80 @@
+:textile
+  h2. Console output
+
+  If you're writing a "custom reporter":/reporters.html, there's a good chance
+  you'll want to print output to the console, whether that's the browser's
+  developer console or the @stdout@ stream of a server-side process. In order to
+  make sure text-based reporters work on every supported platform, @jstest@
+  includes an API for writing to the console, no matter what environment your
+  tests are running on. If you use this API, your reporter will work on any
+  platform that @jstest@ supports.
+
+  The console API is found on an object called @JS.Console@ in the browser, or
+  @require('jstest').Console@ on CommonJS platforms. It provides several sets
+  of methods for performing various tasks.
+
+  h3. Text output
+
+  * @Console.puts(string)@ writes a string to the console, followed by a
+    newline. This will use the developer console in web browsers, the
+    @runtime.trace()@ method on Adobe AIR, or the stdout stream on sever-side
+    platforms.
+  * @Console.print(string)@ writes the given string to the console, without a
+    trailing newline if the platform supports this. If not, the output is
+    buffered and will be flushed on the next @puts()@ call.
+
+  h3. Text formatting
+
+  The @Console@ object supports the following methods for formatting text
+  output. Each method adds the named format to the current state, and all text
+  printed after calling the command will have that format applied.
+
+  In environments that do not support color formatting, these commands are
+  silently ignored.
+
+  * @reset()@ resets all formatting attributes
+  * @bold()@, @normal()@ set the weight of the text
+  * @italic()@, @noitalic()@ switch between italic and roman text
+  * @underline()@, @noline()@ apply and remove underlining
+  * @blink()@, @noblink()@ apply and remove blinking text
+  * @black()@, @red()@, @green()@, @yellow()@, @blue()@, @magenta()@, @cyan()@,
+    @white()@, @nocolor()@ set the current text color
+  * Color methods can be prefixed with @bg@, for example @bgyellow()@, to set
+    the current background color
+
+  h3. Cursor motion
+
+  The following methods can be used in some environments to move the cursor
+  within the terminal window.
+
+  * @cursorUp(n)@, @cursorDown(n)@, @cursorForward(n)@, @cursorBack(n)@ move
+    the cursor @n@ places in the given direction
+  * @cursorNextLine(n)@, @cursorPrevLine(n)@ move the cursor by @n@ lines
+  * @cursorColumn(x)@ moves the cursor to column @x@
+  * @cursorPosition(x,y)@ moves the cursor to column @x@, row @y@
+  * @cursorHide()@, @cursorShow()@ hides and shows the cursor
+  * @eraseScreen()@ clears the entire terminal screen
+  * @eraseScreenForward()@, @eraseScreenBack()@ clears everything either after
+    or before the cursor position
+  * @eraseLine()@ clears the whole of the current line
+  * @eraseLineForward()@, @eraseLineBack()@ clears the current line either to
+    the right or the left of the cursor
+
+  h3. Exit status
+
+  On platforms that allow scripts to exit the current process, this command will
+  end the process with the given status number:
+
+  <pre>Console.exit(status)</pre>
+
+  The @status@ parameter is optional and defaults to @0@.
+
+  h3. Environment variables
+
+  The @Console@ object also provides a uniform interface for accessing
+  environment variables on all supported platforms. To read an environment
+  variable, use this method:
+
+  <pre>// Returns the value of the FORMAT environment variable
+  var format = Console.envvar('FORMAT');</pre>
+

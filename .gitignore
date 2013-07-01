@@ -1,6 +1,6 @@
-build
 Gemfile.lock
 lib/jstest.js
 node_modules
+site/site/stylesheets/screen.css
 site/site/*.html
 

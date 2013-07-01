@@ -1,0 +1,51 @@
+:textile
+  h2. Windows Script Host
+
+  Although the approach described in "Server-side testing":/server.html works on
+  most CommonJS platforms, it won't work on "Windows Script
+  Host":http://msdn.microsoft.com/en-us/library/9bbdkx3k(VS.85).aspx. For that,
+  you need a new runner script.
+
+  This assumes you've gone through the "Getting started":/intro.html and
+  "Loading you scripts":/loading.html tutorials to write a simple spec and a
+  @runner.js@ file that loads your code and tests and runs them. You can reuse
+  that script, since @JS.load()@ works just fine on WSH, but before @jstest@ is
+  loaded we need a different way to load files.
+
+  Add the following code to @example/wsh.js@:
+
+  <pre>// example/wsh.js
+
+  if (this.ActiveXObject) load = function(path) {
+    var fso = new ActiveXObject('Scripting.FileSystemObject'), file, runner
+    try {
+      file   = fso.OpenTextFile(path)
+      runner = function() { eval(file.ReadAll()) }
+      runner()
+    } finally {
+      try { if (file) file.Close() } catch (e) {}
+    }
+  }
+
+  load('build/jstest.js')
+  load('example/runner.js')</pre>
+
+  Because of the way @JS.load()@ loads files on WSH, you'll also need to
+  explicitly make the variables exported by @lib/set.js@ into globals. Add this
+  to the end of the file:
+
+  <pre>// example/lib/set.js
+
+  if (typeof WScript !== 'undefined')
+    this.Set = Set</pre>
+
+  After doing this your tests should run on WSH:
+
+  <pre class="cmd">$ cscript.exe example/wsh.js
+
+  Loaded Suite: Set
+
+  ..
+
+  Finished in 0.198 seconds
+  2 tests, 2 assertions, 0 failures, 0 errors</pre>

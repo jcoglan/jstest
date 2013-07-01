@@ -1,3 +1,42 @@
 :textile
   h2. Running tests with TestSwarm
 
+  If you've gone through the "Getting started":/intro.html and "Loading your
+  code":/loading.html tutorials, this article will show you how to run your
+  tests using "TestSwarm":https://github.com/jquery/testswarm.
+
+  Setting up a TestSwarm server is beyond the scope of this documentation,
+  consult "the TestSwarm docs":https://github.com/jquery/testswarm for how to do
+  this. Once you've set the server up you should have a project name and auth
+  token for submitting jobs.
+
+  A TestSwarm job is basically a list of URLs that reference test pages you want
+  TestSwarm to run. Let's say you want to submit the @jstest@ example tests as a
+  job, and the latest commit is @b4e2c37@. The following request submits a job
+  called @jstest commit b4e2c37@ to run in all browsers, and has one test page
+  called @Tests@ that we've deployed to
+  @http://example.com/jstest/b4e2c37/example/browser.html@.
+
+  <pre class="cmd">$ curl -X POST http://testswarm.example.com/api.php \
+         -d 'action=addjob' \
+         -d 'authUsername=jstest' \
+         -d 'authToken=52ec45981a3d27e7d835c07c5a9be3a5' \
+         -d 'jobName=jstest%20commit%20b4e2c37' \
+         -d 'runMax=5' \
+         -d 'browserSets[]=all' \
+         -d 'runNames[]=Tests' \
+         -d 'runUrls[]=http%3A%2F%2Fexample.com%2Fjstest%2Fb4e2c37%2Fexample%2Fbrowser.html'</pre>
+
+  The test page at @http://example.com/jstest/b4e2c37/example/browser.html@
+  must include the TestSwarm server's inject script, which you can do by adding
+  this to the end of the page's @<head>@ section:
+
+  <pre><script type="text/javascript">
+    var inject = 'http://testswarm.example.com/js/inject.js?' + new Date().getTime()
+    document.write('<scr'+'ipt src="' + inject + '"></scr'+'ipt>')
+  </script></pre>
+
+  Once you've done this, everything should just work. @jstest@ should
+  automatically enable the TestSwarm "reporter":/reporters.html and your test
+  results should be logged correctly.
+

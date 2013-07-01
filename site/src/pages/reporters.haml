@@ -33,7 +33,7 @@
   * @ExitStatus@ [@server@] - makes the process exit with status @0@ or @1@
   * @JSON@ [@text@] - prints a stream of JSON objects containing reporter events
   * @Karma@ [@browser@] - reports progress to "Karma":/karma.html
-  * @PhantomJS@ [@server@] - reports progress of browser tests in the terminal
+  * @Headless@ [@server@] - reports on PhantomJS/SlimerJS tests in the terminal
   * @Progress@ [@server@] - prints an animated progress bar in the terminal
   * @Spec@ [@text@] - prints RSpec-style nested specdoc format
   * @TAP@ [@text@] - prints results in TAP format
@@ -45,9 +45,9 @@
   * @XML@ [@text@] - prints JUnit-style XML report to stdout
 
   Most of these can be instantiated without arguments, but some are more
-  complicated.  For example, the "@PhantomJS@ reporter":/phantom.html takes an
-  options object and a @WebPage@ instance, and relies on the test page using the
-  @JSON@ reporter - @jstest@ sets this all up for you by default.
+  complicated.  For example, the "@Headless@ reporter":/phantom.html takes an
+  options object that specifies the output format, and relies on the test page
+  using the @JSON@ reporter - @jstest@ sets this all up for you by default.
 
   Similarly, @jstest@ automatically selects whichever browser reporters are
   appropriate for the current environment. Attempting to use any of the

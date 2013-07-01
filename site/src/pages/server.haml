@@ -1,5 +1,5 @@
 :textile
-  h2. Running tests on the server
+  h2. Server-side testing
 
   The primary target for server-side JavaScript these days is
   "Node.js":http://nodejs.org, but @jstest@ also supports several other
@@ -15,27 +15,45 @@
   The tests expect a couple of global variables to exist, @JS@ and @Set@.
   CommonJS platforms encourage us to avoid global variables and so we need to
   import the modules we need into each spec file. Add the following to the top
-  of @example/spec/set_spec.js@ to load @jstest@ and the @Set@ class:
+  of @example/spec/set_spec.js@ to load @jstest@ and the @Set@ class.
 
-  <pre>if (typeof JS === 'undefined') {
-    var JS  = require('jstest'),
-        Set = require('../lib/set').Set
-  }
+  <pre>// example/spec/set_spec.js
+
+  var JS  = require('jstest'),
+      Set = require('../lib/set').Set</pre>
+
+  If you want to run the tests both on the server _and_ in the browser, you'll
+  either need to use a tool like
+  "browserify":https://github.com/substack/node-browserify to resolve the
+  @require()@ statements, or add a little more boilerplate around the test so it
+  can find the variables it needs whether they are globals or CommonJS modules.
+
+  <pre>// example/spec/set_spec.js
+
+  (function() {
+
+  var JS  = this.JS  || require('jstest'),
+      Set = this.Set || require('../lib/set').Set
 
   JS.Test.describe('Set', function() { with(this) {
-    // ...</pre>
+    // ...
+  }})
+
+  })()</pre>
 
   @jstest@ exports a CommonJS module out of the box, but our @Set@ class
   doesn't, so let's add a couple of lines at the end of @example/lib/set.js@ to
   turn it into a proper module:
 
-  <pre>if (typeof exports === 'object')
+  <pre>// example/lib/set.js
+
+  if (typeof exports === 'object')
     exports.Set = Set</pre>
 
   Having done this, we can create a script to run our tests. All it does is load
   @jstest@, load all the specs, and execute them:
 
-  <pre>// examples/console.js
+  <pre>// example/console.js
 
   var JS = require('jstest')
   require('./spec/set_spec')
