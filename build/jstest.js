@@ -5934,22 +5934,26 @@ Test.Context.LifeCycle = new JS.Module({
     },
 
     ClassMethods: new JS.Module({
+      blockTransform: function(block) {
+        return block;
+      },
+
       before: function(period, block) {
-        if ((typeof period === 'function') || !block) {
+        if (block === undefined) {
           block  = period;
           period = 'each';
         }
 
-        this['before_' + (period + '_') + 'callbacks'].push(block);
+        this['before_' + (period + '_') + 'callbacks'].push(this.blockTransform(block));
       },
 
       after: function(period, block) {
-        if ((typeof period === 'function') || !block) {
+        if (block === undefined) {
           block  = period;
           period = 'each';
         }
 
-        this['after_' + (period + '_') + 'callbacks'].push(block);
+        this['after_' + (period + '_') + 'callbacks'].push(this.blockTransform(block));
       },
 
       gatherCallbacks: function(callbackType, period) {
@@ -6079,7 +6083,7 @@ Test.Unit.TestCase.extend({
 })();
 
 Test.Context.Test = new JS.Module({
-  it: function(name, opts, block) {
+  test: function(name, opts, block) {
     var testName = 'test: ' + name;
 
     if (JS.indexOf(this.instanceMethods(false), testName) >= 0)
@@ -6094,12 +6098,8 @@ Test.Context.Test = new JS.Module({
         this.before_should_callbacks[testName] = opts.before;
     }
 
-    this.define(testName, block, {_resolve: false});
+    this.define(testName, this.blockTransform(block), {_resolve: false});
   },
-
-  should: function() { return this.it.apply(this, arguments) },
-  test:   function() { return this.it.apply(this, arguments) },
-  tests:  function() { return this.it.apply(this, arguments) },
 
   beforeTest: function(name, block) {
     this.it(name, {before: block}, function() {});
@@ -6107,6 +6107,9 @@ Test.Context.Test = new JS.Module({
 });
 
 Test.Context.Test.alias({
+  it:           'test',
+  should:       'test',
+  tests:        'test',
   beforeIt:     'beforeTest',
   beforeShould: 'beforeTest',
   beforeTests:  'beforeTest'
@@ -6663,20 +6666,15 @@ Test.extend({
 
     included: function(klass) {
       klass.include(Test.AsyncSteps.Sync);
-      if (!klass.includes(Test.Context)) return;
+      if (!klass.blockTransform) return;
 
       klass.extend({
-        it: function(name, opts, block) {
-          if (typeof opts === 'function') {
-            block = opts;
-            opts  = {};
-          }
-          this.callSuper(name, opts, function(resume) {
+        blockTransform: function(block) {
+          return function(resume) {
             this.exec(block, function(error) {
-              Test.Unit.TestCase.processError(this, error);
-              this.sync(resume);
+              this.sync(function() { resume(error) });
             });
-          });
+          };
         }
       });
     },
