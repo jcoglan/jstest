@@ -73,7 +73,6 @@
       "example/testling.js"
     ],
     "browsers": {
-      "android-browser":  [4.2],
       "chrome":           [25],
       "firefox":          [3.6, 19],
       "iexplore":         [6, 7, 8, 9, 10],
