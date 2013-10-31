@@ -1,3 +1,4 @@
+.wake.json
 Gemfile.lock
 lib/jstest.js
 node_modules

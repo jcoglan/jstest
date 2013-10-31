@@ -5113,7 +5113,7 @@ Test.Unit.extend({
 
           if (typeof asyncResult === 'string') asyncResult = new Error(asyncResult);
 
-          if (typeof asyncResult === 'object')
+          if (typeof asyncResult === 'object' && asyncResult !== null)
             onUncaughtError(asyncResult);
           else if (typeof asyncResult === 'function')
             self.exec(asyncResult, onSuccess, onError);
@@ -6692,7 +6692,7 @@ Test.extend({
         },
 
         __runNextStep__: function(error) {
-          if (typeof error === 'object') return this.addError(error);
+          if (typeof error === 'object' && error !== null) return this.addError(error);
 
           var step = this.__stepQueue__.shift(), n;
 
