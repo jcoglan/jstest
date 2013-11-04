@@ -6177,7 +6177,7 @@ Test.extend({
       __activeStubs__: [],
 
       stub: function(object, methodName, implementation) {
-        var constructor = false;
+        var constructor = false, stub;
 
         if (object === 'new') {
           object         = methodName;
@@ -6195,13 +6195,15 @@ Test.extend({
             i     = stubs.length;
 
         while (i--) {
-          if (stubs[i]._object === object && stubs[i]._methodName === methodName)
-            return stubs[i].defaultMatcher(implementation);
+          if (stubs[i]._object === object && stubs[i]._methodName === methodName) {
+            stub = stubs[i];
+            break;
+          }
         }
 
-        var stub = new Test.Mocking.Stub(object, methodName, constructor);
+        if (!stub) stub = new Test.Mocking.Stub(object, methodName, constructor);
         stubs.push(stub);
-        return stub.defaultMatcher(implementation);
+        return stub.createMatcher(implementation);
       },
 
       removeStubs: function() {
@@ -6228,34 +6230,29 @@ Test.extend({
           this._methodName  = methodName;
           this._constructor = constructor;
           this._original    = object[methodName];
+          this._matchers    = [];
 
           this._ownProperty = object.hasOwnProperty
                             ? object.hasOwnProperty(methodName)
                             : (typeof this._original !== 'undefined');
 
-          var mocking = Test.Mocking;
-
-          this._argMatchers = [];
-          this._anyArgs     = new mocking.Parameters([new mocking.AnyArgs()]);
-          this._expected    = false;
-
-          this.apply();
+          this.activate();
         },
 
-        defaultMatcher: function(implementation) {
+        createMatcher: function(implementation) {
           if (implementation !== undefined && typeof implementation !== 'function') {
             this._object[this._methodName] = implementation;
-            return this;
+            return null;
           }
 
-          this._activateLastMatcher();
-          this._currentMatcher = this._anyArgs;
-          if (typeof implementation === 'function')
-            this._currentMatcher._fake = implementation;
-          return this;
+          var mocking = JS.Test.Mocking,
+              matcher = new mocking.Parameters([new mocking.AnyArgs()], implementation);
+
+          this._matchers.push(matcher);
+          return matcher;
         },
 
-        apply: function() {
+        activate: function() {
           var object = this._object, methodName = this._methodName;
           if (object[methodName] !== this._original) return;
 
@@ -6265,25 +6262,19 @@ Test.extend({
         },
 
         revoke: function() {
-          if (this._ownProperty)
+          if (this._ownProperty) {
             this._object[this._methodName] = this._original;
-          else
-            try { delete this._object[this._methodName] }
-            catch (e) { this._object[this._methodName] = undefined }
-        },
-
-        expected: function() {
-          this._expected = true;
-          this._anyArgs._expected = true;
-        },
-
-        _activateLastMatcher: function() {
-          if (this._currentMatcher) this._currentMatcher._active = true;
+          } else {
+            try {
+              delete this._object[this._methodName];
+            } catch (e) {
+              this._object[this._methodName] = undefined;
+            }
+          }
         },
 
         _dispatch: function(receiver, args) {
-          this._activateLastMatcher();
-          var matchers = this._argMatchers.concat(this._anyArgs),
+          var matchers = this._matchers,
               matcher, result, message;
 
           if (this._constructor && !(receiver instanceof this._shim)) {
@@ -6293,15 +6284,20 @@ Test.extend({
 
             throw new Test.Mocking.UnexpectedCallError(message);
           }
+          if (!this._constructor && (receiver instanceof this._shim)) {
+            message = new Test.Unit.AssertionMessage('',
+                          '<?> expected not to be a constructor but called with `new`',
+                          [this._original]);
 
-          this._anyArgs.ping();
+            throw new Test.Mocking.UnexpectedCallError(message);
+          }
 
           for (var i = 0, n = matchers.length; i < n; i++) {
             matcher = matchers[i];
             result  = matcher.match(args);
 
             if (!result) continue;
-            if (matcher !== this._anyArgs) matcher.ping();
+            matcher.ping();
 
             if (result.fake)
               return result.fake.apply(receiver, args);
@@ -6330,12 +6326,8 @@ Test.extend({
         },
 
         _verify: function() {
-          if (!this._expected) return;
-
-          for (var i = 0, n = this._argMatchers.length; i < n; i++)
-            this._verifyParameters(this._argMatchers[i]);
-
-          this._verifyParameters(this._anyArgs);
+          for (var i = 0, n = this._matchers.length; i < n; i++)
+            this._verifyParameters(this._matchers[i]);
         },
 
         _verifyParameters: function(parameters) {
@@ -6349,61 +6341,59 @@ Test.extend({
 
 Test.Mocking.extend({
   Parameters: new JS.Class({
-    initialize: function(params, expected) {
+    initialize: function(params, implementation) {
       this._params    = JS.array(params);
-      this._expected  = expected;
-      this._active    = false;
+      this._fake      = implementation;
+      this._expected  = false;
       this._callsMade = 0;
     },
 
-    toArray: function() {
-      var array = this._params.slice();
-      if (this._yieldArgs) array.push(new Test.Mocking.InstanceOf(Function));
-      return array;
+    given: function() {
+      this._params = JS.array(arguments);
+      return this;
     },
 
-    returns: function(returnValues) {
-      this._returnIndex = 0;
-      this._returnValues = returnValues;
+    returns: function() {
+      this._returnIndex  = 0;
+      this._returnValues = arguments;
+      return this;
     },
 
-    nextReturnValue: function() {
-      if (!this._returnValues) return undefined;
-      var value = this._returnValues[this._returnIndex];
-      this._returnIndex = (this._returnIndex + 1) % this._returnValues.length;
-      return value;
-    },
-
-    yields: function(yieldValues) {
+    yields: function() {
       this._yieldIndex = 0;
-      this._yieldArgs = yieldValues;
+      this._yieldArgs  = arguments;
+      return this;
     },
 
-    nextYieldArgs: function() {
-      if (!this._yieldArgs) return undefined;
-      var value = this._yieldArgs[this._yieldIndex];
-      this._yieldIndex = (this._yieldIndex + 1) % this._yieldArgs.length;
-      return value;
+    raises: function(exception) {
+      this._exception = exception;
+      return this;
     },
 
-    setMinimum: function(n) {
+    expected: function() {
+      this._expected = true;
+      return this;
+    },
+
+    atLeast: function(n) {
       this._expected = true;
       this._minimumCalls = n;
+      return this;
     },
 
-    setMaximum: function(n) {
+    atMost: function(n) {
       this._expected = true;
       this._maximumCalls = n;
+      return this;
     },
 
-    setExpected: function(n) {
+    exactly: function(n) {
       this._expected = true;
       this._expectedCalls = n;
+      return this;
     },
 
     match: function(args) {
-      if (!this._active) return false;
-
       var argsCopy = JS.array(args), callback, context;
 
       if (this._yieldArgs) {
@@ -6427,8 +6417,28 @@ Test.Mocking.extend({
       return result;
     },
 
+    nextReturnValue: function() {
+      if (!this._returnValues) return undefined;
+      var value = this._returnValues[this._returnIndex];
+      this._returnIndex = (this._returnIndex + 1) % this._returnValues.length;
+      return value;
+    },
+
+    nextYieldArgs: function() {
+      if (!this._yieldArgs) return undefined;
+      var value = this._yieldArgs[this._yieldIndex];
+      this._yieldIndex = (this._yieldIndex + 1) % this._yieldArgs.length;
+      return value;
+    },
+
     ping: function() {
       this._callsMade += 1;
+    },
+
+    toArray: function() {
+      var array = this._params.slice();
+      if (this._yieldArgs) array.push(new Test.Mocking.InstanceOf(Function));
+      return array;
     },
 
     verify: function(object, methodName, constructor) {
@@ -6478,6 +6488,12 @@ Test.Mocking.extend({
       return type + ' ' + copy[type] + ' times\n' + report;
     }
   })
+});
+
+Test.Mocking.Parameters.alias({
+  raising:    'raises',
+  returning:  'returns',
+  yielding:   'yields'
 });
 
 Test.Mocking.extend({
@@ -6566,51 +6582,6 @@ Test.Mocking.extend({
       return 'matching(' + name + ')';
     }
   })
-});
-
-Test.Mocking.Stub.include({
-  given: function() {
-    var matcher = new Test.Mocking.Parameters(arguments, this._expected);
-    this._argMatchers.push(matcher);
-    this._currentMatcher = matcher;
-    return this;
-  },
-
-  raises: function(exception) {
-    this._currentMatcher._exception = exception;
-    return this;
-  },
-
-  returns: function() {
-    this._currentMatcher.returns(arguments);
-    return this;
-  },
-
-  yields: function() {
-    this._currentMatcher.yields(arguments);
-    return this;
-  },
-
-  atLeast: function(n) {
-    this._currentMatcher.setMinimum(n);
-    return this;
-  },
-
-  atMost: function(n) {
-    this._currentMatcher.setMaximum(n);
-    return this;
-  },
-
-  exactly: function(n) {
-    this._currentMatcher.setExpected(n);
-    return this;
-  }
-});
-
-Test.Mocking.Stub.alias({
-  raising:    'raises',
-  returning:  'returns',
-  yielding:   'yields'
 });
 
 Test.Mocking.extend({
@@ -6754,8 +6725,12 @@ Test.extend({
 
           Test.FakeClock.reset();
 
-          while (i--)
-            mocking.stub(methods[i], Test.FakeClock.method(methods[i]));
+          while (i--) {
+            if (methods[i] === 'Date')
+              mocking.stub('new', methods[i], Test.FakeClock.method(methods[i]));
+            else
+              mocking.stub(methods[i], Test.FakeClock.method(methods[i]));
+          }
 
           Date.now = Test.FakeClock.REAL.Date.now;
         },
@@ -6778,7 +6753,7 @@ Test.extend({
       }),
 
       Timeout: new JS.Class({
-        include: JS.Comparable,
+        include: Comparable,
 
         initialize: function(callback, interval, repeat) {
           this.callback = callback;
@@ -7883,7 +7858,7 @@ Test.Reporters.extend({
       this._stack  = [];
       this._suites = [];
 
-      this.puts('<?xml version="1.0" encoding="UTF-8" ?>');
+      this.puts('<?xml version="1.0" encoding="UTF-8"?>');
       this.puts('<testsuites>');
     },
 
@@ -7948,7 +7923,7 @@ Test.Reporters.extend({
 
       for (i = 0, n = suite.cases.length; i < n; i++) {
         test   = suite.cases[i];
-        ending = (test.failures.length === 0) ? ' />' : '>';
+        ending = (test.failures.length === 0) ? '/>' : '>';
         this.puts('        <testcase classname="' + this._xmlStr(suite.name) +
                                   '" name="' + this._xmlStr(test.name) +
                                   '" time="' + test.time +
@@ -7956,7 +7931,7 @@ Test.Reporters.extend({
 
         for (j = 0, m = test.failures.length; j < m; j++) {
           failure = test.failures[j];
-          ending  = failure.error.backtrace ? '>' : ' />';
+          ending  = failure.error.backtrace ? '>' : '/>';
           this.puts('            <failure type="' + failure.type +
                                        '" message="' + this._xmlStr(failure.error.message) +
                                        '"' + ending);
