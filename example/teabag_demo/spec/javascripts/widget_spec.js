@@ -1,1 +1,0 @@
-../../../spec/widget_spec.js

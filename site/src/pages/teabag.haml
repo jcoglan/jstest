@@ -1,31 +1,29 @@
 :textile
-  h2. Running tests with Teabag
+  h2. Running tests with Teaspoon
 
   If you've gone through the "Getting started":/intro.html tutorial, this
   article will show you how to run your tests using
-  "Teabag":https://github.com/modeset/teabag.
+  "Teaspoon":https://github.com/modeset/teaspoon.
 
-  Teabag is a JavaScript test running for Rails. @jstest@ has a "reporter
-  plugin":/reporters.html that will autodetect if you're using Teabag and wire
-  everything up for you. To get started, add @teabag@ to your @Gemfile@:
+  Teaspoon is a JavaScript test running for Rails. @jstest@ has a "reporter
+  plugin":/reporters.html that will autodetect if you're using Teaspoon and wire
+  everything up for you. To get started, add @teaspoon@ to your @Gemfile@:
 
   <pre># Gemfile
 
-  group :assets do
-    gem 'teabag'
-  end</pre>
+  gem 'teaspoon'</pre>
 
-  Then run the following commands to install Teabag in your app:
+  Then run the following commands to install Teaspoon in your app:
 
-  <pre class="cmd">$ bundle update teabag
-  $ rails generate teabag:install</pre>
+  <pre class="cmd">$ bundle update teaspoon
+  $ rails generate teaspoon:install</pre>
 
   Let's copy the example files from "Getting started":/intro.html into this
   project.
 
-  <pre class="cmd">cp build/jstest.js          teabag_demo/vendor/assets/javascripts/jstest.js
-  cp example/lib/set.js       teabag_demo/app/assets/javascripts/set.js
-  cp example/spec/set_spec.js teabag_demo/spec/javascripts/set_spec.js</pre>
+  <pre class="cmd">cp build/jstest.js          teaspoon_demo/vendor/assets/javascripts/jstest.js
+  cp example/lib/set.js       teaspoon_demo/app/assets/javascripts/set.js
+  cp example/spec/set_spec.js teaspoon_demo/spec/javascripts/set_spec.js</pre>
 
   To load @jstest.js@ and @set.js@ into the test page, add this to
   @spec/javascripts/spec_helper.js@:
@@ -35,7 +33,7 @@
   //= require jstest
   //= require set</pre>
 
-  Then boot your Rails app and open @http://localhost:3000/teabag@. You should
+  Then boot your Rails app and open @http://localhost:3000/teaspoon@. You should
   see this page:
 
   !/images/teabag1.png!
