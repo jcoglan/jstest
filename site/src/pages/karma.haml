@@ -15,31 +15,23 @@
   from a static file server we'll set up in a minute.
 
   <pre>// example/karma.js
-  
+
   ROOT = 'http://localhost:4180'
 
   if (typeof window === 'undefined') {
-    autoWatch = true
-    basePath  = '..'
-    files     = ['example/karma.js', ROOT + '/build/jstest.js', ROOT + '/example/runner.js']
+    module.exports = function(config) {
+      config.set({
+        autoWatch: true,
+        basePath:  '..',
+        files: [
+          ROOT + '/example/karma.js',
+          ROOT + '/build/jstest.js',
+          ROOT + '/example/runner.js'
+        ]
+      })
+    }
   } else {
     __karma__.start = function() {}
-  }</pre>
-
-  If you're prefer to list all your files here instead of using your @runner.js@
-  script, and forgo the @localhost:4180@ static server, that's fine too:
-
-  <pre>// example/karma.js
-
-  if (typeof window === 'undefined') {
-    autoWatch = true
-    basePath  = '..'
-    files     = ['example/karma.js', 'build/jstest.js',
-                 'example/lib/set.js', 'example/spec/set_spec.js']
-  } else {
-    __karma__.start = function() {
-      JS.Test.autorun()
-    }
   }</pre>
 
   @jstest@ will detect Karma and automatically use the right
