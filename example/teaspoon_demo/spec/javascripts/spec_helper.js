@@ -28,4 +28,3 @@
 //= require widget
 //= require helpers
 //= require set_spec
-//= require widget_spec
