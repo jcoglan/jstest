@@ -5171,6 +5171,10 @@ Test.Unit.extend({
         shortName:  shortName,
         context:    klassData.context.concat(klassData.shortName)
       };
+    },
+
+    toString: function() {
+      return 'TestCase{' + this.metadata().fullName + '}';
     }
   })
 });
@@ -6201,9 +6205,9 @@ Test.extend({
           }
         }
 
-        if (!stub) stub = new Test.Mocking.Stub(object, methodName, constructor);
+        if (!stub) stub = new Test.Mocking.Stub(object, methodName);
         stubs.push(stub);
-        return stub.createMatcher(implementation);
+        return stub.createMatcher(implementation, constructor);
       },
 
       removeStubs: function() {
@@ -6225,12 +6229,11 @@ Test.extend({
       },
 
       Stub: new JS.Class({
-        initialize: function(object, methodName, constructor) {
-          this._object      = object;
-          this._methodName  = methodName;
-          this._constructor = constructor;
-          this._original    = object[methodName];
-          this._matchers    = [];
+        initialize: function(object, methodName) {
+          this._object     = object;
+          this._methodName = methodName;
+          this._original   = object[methodName];
+          this._matchers   = [];
 
           this._ownProperty = object.hasOwnProperty
                             ? object.hasOwnProperty(methodName)
@@ -6239,14 +6242,14 @@ Test.extend({
           this.activate();
         },
 
-        createMatcher: function(implementation) {
+        createMatcher: function(implementation, constructor) {
           if (implementation !== undefined && typeof implementation !== 'function') {
             this._object[this._methodName] = implementation;
             return null;
           }
 
           var mocking = JS.Test.Mocking,
-              matcher = new mocking.Parameters([new mocking.AnyArgs()], implementation);
+              matcher = new mocking.Parameters([new mocking.AnyArgs()], constructor, implementation);
 
           this._matchers.push(matcher);
           return matcher;
@@ -6257,8 +6260,12 @@ Test.extend({
           if (object[methodName] !== this._original) return;
 
           var self = this;
-          this._shim = function() { return self._dispatch(this, arguments) };
-          object[methodName] = this._shim;
+
+          var shim = function() {
+            var isConstructor = (this instanceof shim);
+            return self._dispatch(this, arguments, isConstructor);
+          };
+          object[methodName] = shim;
         },
 
         revoke: function() {
@@ -6273,28 +6280,13 @@ Test.extend({
           }
         },
 
-        _dispatch: function(receiver, args) {
+        _dispatch: function(receiver, args, isConstructor) {
           var matchers = this._matchers,
-              matcher, result, message;
-
-          if (this._constructor && !(receiver instanceof this._shim)) {
-            message = new Test.Unit.AssertionMessage('',
-                          '<?> expected to be a constructor but called without `new`',
-                          [this._original]);
-
-            throw new Test.Mocking.UnexpectedCallError(message);
-          }
-          if (!this._constructor && (receiver instanceof this._shim)) {
-            message = new Test.Unit.AssertionMessage('',
-                          '<?> expected not to be a constructor but called with `new`',
-                          [this._original]);
-
-            throw new Test.Mocking.UnexpectedCallError(message);
-          }
+              matcher, result;
 
           for (var i = 0, n = matchers.length; i < n; i++) {
             matcher = matchers[i];
-            result  = matcher.match(args);
+            result  = matcher.match(receiver, args, isConstructor);
 
             if (!result) continue;
             matcher.ping();
@@ -6312,13 +6304,14 @@ Test.extend({
             if (result) return matcher.nextReturnValue();
           }
 
-          if (this._constructor) {
+          var message;
+          if (isConstructor) {
             message = new Test.Unit.AssertionMessage('',
-                          '<?> constructed with unexpected arguments:\n(?)',
+                          '<?> unexpectedly constructed with arguments:\n(?)',
                           [this._original, JS.array(args)]);
           } else {
             message = new Test.Unit.AssertionMessage('',
-                          '<?> received call to ' + this._methodName + '() with unexpected arguments:\n(?)',
+                          '<?> unexpectedly received call to ' + this._methodName + '() with arguments:\n(?)',
                           [receiver, JS.array(args)]);
           }
 
@@ -6327,12 +6320,7 @@ Test.extend({
 
         _verify: function() {
           for (var i = 0, n = this._matchers.length; i < n; i++)
-            this._verifyParameters(this._matchers[i]);
-        },
-
-        _verifyParameters: function(parameters) {
-          var object = this._constructor ? this._original : this._object;
-          parameters.verify(object, this._methodName, this._constructor);
+            this._matchers[i].verify(this._object, this._methodName, this._original);
         }
       })
     }
@@ -6341,11 +6329,22 @@ Test.extend({
 
 Test.Mocking.extend({
   Parameters: new JS.Class({
-    initialize: function(params, implementation) {
-      this._params    = JS.array(params);
-      this._fake      = implementation;
-      this._expected  = false;
-      this._callsMade = 0;
+    initialize: function(params, constructor, implementation) {
+      this._params      = JS.array(params);
+      this._constructor = constructor;
+      this._fake        = implementation;
+      this._expected    = false;
+      this._callsMade   = 0;
+    },
+
+    withNew: function() {
+      this._constructor = true;
+      return this;
+    },
+
+    on: function(target) {
+      this._target = target;
+      return this;
     },
 
     given: function() {
@@ -6393,8 +6392,10 @@ Test.Mocking.extend({
       return this;
     },
 
-    match: function(args) {
+    match: function(receiver, args, isConstructor) {
       var argsCopy = JS.array(args), callback, context;
+
+      if (this._constructor !== isConstructor) return false;
 
       if (this._yieldArgs) {
         if (typeof argsCopy[argsCopy.length - 2] === 'function') {
@@ -6406,7 +6407,10 @@ Test.Mocking.extend({
         }
       }
 
-      if (!Enumerable.areEqual(this._params, argsCopy)) return false;
+      if (this._target !== undefined && !Enumerable.areEqual(this._target, receiver))
+        return false;
+      if (!Enumerable.areEqual(this._params, argsCopy))
+        return false;
 
       var result = {};
 
@@ -6441,7 +6445,7 @@ Test.Mocking.extend({
       return array;
     },
 
-    verify: function(object, methodName, constructor) {
+    verify: function(object, methodName, original) {
       if (!this._expected) return;
 
       var okay = true, extraMessage;
@@ -6460,17 +6464,17 @@ Test.Mocking.extend({
       }
       if (okay) return;
 
-      var message;
-      if (constructor) {
+      var target = this._target || object, message;
+      if (this._constructor) {
         message = new Test.Unit.AssertionMessage('Mock expectation not met',
                       '<?> expected to be constructed with\n(?)' +
                       (extraMessage ? '\n' + extraMessage : ''),
-                      [object, this.toArray()]);
+                      [original, this.toArray()]);
       } else {
         message = new Test.Unit.AssertionMessage('Mock expectation not met',
                       '<?> expected to receive call\n' + methodName + '(?)' +
                       (extraMessage ? '\n' + extraMessage : ''),
-                      [object, this.toArray()]);
+                      [target, this.toArray()]);
       }
 
       throw new Test.Mocking.ExpectationError(message);
@@ -7649,17 +7653,17 @@ R.register('tap/j',    R.TAP_JSON);
 R.register('tap-json', R.TAP_JSON);
 R.register('tap-j',    R.TAP_JSON);
 
-// https://github.com/modeset/teabag
+// https://github.com/modeset/teaspoon
 
 Test.Reporters.extend({
-  Teabag: new JS.Class({
+  Teaspoon: new JS.Class({
     extend: {
       Spec: new JS.Class({
         initialize: function(spec) {
           this._spec           = spec;
           this.fullDescription = spec.event.fullName;
           this.description     = spec.event.shortName;
-          this.parent          = Test.Reporters.Teabag.Suite.find(spec.event.context);
+          this.parent          = Test.Reporters.Teaspoon.Suite.find(spec.event.context);
           this.link            = '?grep=' + encodeURIComponent(this.fullDescription);
         },
 
@@ -7677,7 +7681,7 @@ Test.Reporters.extend({
           this._parents = [];
           var context = this._spec.event.context;
           for (var i = 1, n = context.length; i < n; i++) {
-            this._parents.push(Test.Reporters.Teabag.Suite.find(context.slice(0, i)));
+            this._parents.push(Test.Reporters.Teaspoon.Suite.find(context.slice(0, i)));
           }
           return this._parents;
         },
@@ -7710,20 +7714,20 @@ Test.Reporters.extend({
       })
     },
 
-    initialize: function(options, teabag) {
-      this._teabag = teabag;
+    initialize: function(options, teaspoon) {
+      this._teaspoon = teaspoon;
     },
 
     startSuite: function(event) {
-      this._teabag.reportRunnerStarting({total: event.size});
+      this._teaspoon.reportRunnerStarting({total: event.size});
     },
 
     startContext: function(event) {},
 
     startTest: function(event) {
       this._faults = [];
-      if (this._teabag.reportSpecStarting)
-        this._teabag.reportSpecStarting({event: event, faults: this._faults});
+      if (this._teaspoon.reportSpecStarting)
+        this._teaspoon.reportSpecStarting({event: event, faults: this._faults});
     },
 
     addFault: function(event) {
@@ -7732,7 +7736,7 @@ Test.Reporters.extend({
     },
 
     endTest: function(event) {
-      this._teabag.reportSpecResults({event: event, faults: this._faults});
+      this._teaspoon.reportSpecResults({event: event, faults: this._faults});
     },
 
     endContext: function(event) {},
@@ -7740,32 +7744,33 @@ Test.Reporters.extend({
     update: function(event) {},
 
     endSuite: function(event) {
-      this._teabag.reportRunnerResults();
+      this._teaspoon.reportRunnerResults();
     }
   })
 });
 
 (function() {
-  if (!JS.ENV.Teabag) return;
+  var Teaspoon = JS.ENV.Teaspoon || JS.ENV.Teabag;
+  if (!Teaspoon) return;
 
-  Teabag.Reporters.HTML.prototype.envInfo = function() {
+  Teaspoon.Reporters.HTML.prototype.envInfo = function() {
     return 'jstest';
   };
 
-  Teabag.Runner.prototype.setup = function() {
+  Teaspoon.Runner.prototype.setup = function() {
     var options = {};
-    if (Teabag.params.grep) options.test = [Teabag.params.grep];
+    if (Teaspoon.params.grep) options.test = [Teaspoon.params.grep];
 
-    var teabag   = this.getReporter(),
-        reporter = new Test.Reporters.Teabag({}, new teabag());
+    var teaspoon = this.getReporter(),
+        reporter = new Test.Reporters.Teaspoon({}, new teaspoon());
 
     Test.autorun(options, function(runner) {
       runner.setReporter(reporter);
     });
   };
 
-  Teabag.Spec  = Test.Reporters.Teabag.Spec;
-  Teabag.Suite = Test.Reporters.Teabag.Suite;
+  Teaspoon.Spec  = Test.Reporters.Teaspoon.Spec;
+  Teaspoon.Suite = Test.Reporters.Teaspoon.Suite;
 })();
 
 // https://github.com/airportyh/testem
