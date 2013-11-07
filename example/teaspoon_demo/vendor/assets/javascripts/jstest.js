@@ -7750,7 +7750,8 @@ Test.Reporters.extend({
 });
 
 (function() {
-  if (!JS.ENV.Teaspoon) return;
+  var Teaspoon = JS.ENV.Teaspoon || JS.ENV.Teabag;
+  if (!Teaspoon) return;
 
   Teaspoon.Reporters.HTML.prototype.envInfo = function() {
     return 'jstest';
