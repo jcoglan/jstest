@@ -4876,13 +4876,11 @@ Test.Unit.extend({
 
       this.forEach(function(test, resume) {
         test.run(result, resume, callback, context)
-
       }, function() {
         if (this._metadata.fullName)
           callback.call(context, this.klass.FINISHED, this);
 
         continuation.call(context);
-
       }, this);
     },
 
@@ -4997,11 +4995,11 @@ Test.Unit.extend({
         };
       },
 
-      suite: function(filter, inherit, useDefault) {
+      suite: function(filter) {
         var metadata    = this.metadata(),
             root        = Test.Unit.TestCase,
             fullName    = metadata.fullName,
-            methodNames = new Enumerable.Collection(this.instanceMethods(inherit)),
+            methodNames = new Enumerable.Collection(this.instanceMethods(false)),
             suite       = [],
             children    = [],
             child, i, n;
@@ -5016,13 +5014,9 @@ Test.Unit.extend({
           try { suite.push(new this(tests[i])) } catch (e) {}
         }
 
-        if (useDefault && suite.length === 0) {
-          try { suite.push(new this('defaultTest')) } catch (e) {}
-        }
-
         if (this.testCases) {
           for (i = 0, n = this.testCases.length; i < n; i++) {
-            child = this.testCases[i].suite(filter, inherit, useDefault);
+            child = this.testCases[i].suite(filter);
             if (child.size() === 0) continue;
             children.push(this.testCases[i].displayName);
             suite.push(child);
@@ -5135,10 +5129,6 @@ Test.Unit.extend({
     setup: function() {},
 
     teardown: function() {},
-
-    defaultTest: function() {
-      return this.flunk('No tests were specified');
-    },
 
     passed: function() {
       return this._testPassed;
@@ -6118,18 +6108,6 @@ Test.Context.Test.alias({
   beforeShould: 'beforeTest',
   beforeTests:  'beforeTest'
 });
-
-(function() {
-  var suite = Test.Unit.TestCase.suite;
-
-  Test.Unit.TestCase.extend({
-    // Tweaks to standard method so we don't get superclass methods and we don't
-    // get weird default tests
-    suite: function(filter) {
-      return suite.call(this, filter, false, false);
-    }
-  });
-})();
 
 Test.Unit.TestSuite.include({
   run: function(result, continuation, callback, context) {
@@ -7878,7 +7856,7 @@ Test.Reporters.extend({
       if (event.context === null) return;
       if (this._stack.length === 0)
         this._suites.push({
-          name: event.shortName,
+          name:     event.shortName,
           cases:    [],
           tests:    0,
           failures: 0,
