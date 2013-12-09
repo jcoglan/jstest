@@ -28,6 +28,11 @@
   @require()@ statements, or add a little more boilerplate around the test so it
   can find the variables it needs whether they are globals or CommonJS modules.
 
+  (If you use @browserify@, you'll need to pass @--noparse jstest@ on the
+  command line. @jstest@ is a self-contained file that's already gone through a
+  browserify-like build process, and you'll get lots of errors unless you tell
+  @browserify@ not to process it.)
+
   <pre>// example/spec/set_spec.js
 
   (function() {
