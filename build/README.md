@@ -16,7 +16,7 @@ See the [website](http://jstest.jcoglan.com) for documentation.
 
 (The MIT License)
 
-Copyright (c) 2007-2013 James Coglan
+Copyright (c) 2007-2014 James Coglan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the 'Software'), to deal in
