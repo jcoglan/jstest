@@ -12,7 +12,7 @@
 , "preferGlobal"    : true
 , "dependencies"    : { "nopt": "" }
 , "devDependencies" : { "jsbuild": "1.0.1"
-                      , "jsclass": "4.0.3"
+                      , "jsclass": "4.0.5"
                       , "wake": ""
                       , "split": ""
                       , "faye-websocket": ""
